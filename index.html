@@ -1,0 +1,629 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Body Mode | Transform Yourself</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="script.js" defer></script>
+  <script src="translations.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="supabase.js" defer></script>
+
+  <style>
+    .language-select {
+      background: #151515;
+      color: #e8bc50;
+      border: 1px solid #e8bc50;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      max-width: 155px;
+    }
+
+    .language-select:focus {
+      outline: none;
+    }
+
+    .navbar nav {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    [dir="rtl"] .hero-content,
+    [dir="rtl"] .about {
+      text-align: right;
+    }
+
+    .auth-loading {
+      visibility: hidden;
+    }
+
+    .account-link {
+      color: #e8bc50;
+      font-weight: 700;
+    }
+
+    .logout-btn {
+      background: transparent;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 9px 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .logout-btn:hover {
+      border-color: #e8bc50;
+      color: #e8bc50;
+    }
+
+    @media (max-width: 768px) {
+      .language-select {
+        max-width: 125px;
+        padding: 7px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="navbar">
+    <a href="index.html" class="logo">
+      ⚡ BODY<span>MODE</span>
+    </a>
+
+    <nav>
+      <a href="#home" data-i18n="home">Home</a>
+
+      <a href="#courses" data-i18n="programs">
+        Programs
+      </a>
+
+      <a href="#about" data-i18n="about">
+        About
+      </a>
+
+      <a
+        href="login.html"
+        id="loginLink"
+        class="auth-loading"
+        data-i18n="login"
+      >
+        LOGIN
+      </a>
+
+      <a
+        href="signup.html"
+        id="signupLink"
+        class="nav-btn auth-loading"
+        data-i18n="signup"
+      >
+        SIGN UP
+      </a>
+
+      <a
+        href="dashboard.html"
+        id="dashboardLink"
+        class="account-link"
+        style="display:none"
+        data-i18n="dashboard"
+      >
+        DASHBOARD
+      </a>
+
+      <button
+        type="button"
+        id="logoutButton"
+        class="logout-btn"
+        style="display:none"
+      >
+        LOG OUT
+      </button>
+
+      <select
+        id="languageSelect"
+        class="language-select"
+        aria-label="Select language">
+      </select>
+    </nav>
+  </header>
+
+  <main>
+
+    <section class="hero" id="home">
+      <div class="hero-content">
+
+        <p class="eyebrow" data-i18n="eyebrow">
+          BUILD YOUR BEST VERSION
+        </p>
+
+        <h1>
+          <span data-i18n="hero1" style="color:inherit">
+            UNLOCK YOUR
+          </span>
+
+          <br>
+
+          <span data-i18n="hero2">
+            FULL POTENTIAL.
+          </span>
+        </h1>
+
+        <p class="hero-desc" data-i18n="heroDesc">
+          Transform your body with structured workouts,
+          smart nutrition and powerful training programs.
+        </p>
+
+        <a href="#courses" class="btn" data-i18n="start">
+          START YOUR JOURNEY →
+        </a>
+
+      </div>
+    </section>
+
+    <section class="courses" id="courses">
+
+      <p class="eyebrow" data-i18n="choose">
+        CHOOSE YOUR PATH
+      </p>
+
+      <h2>
+        <span data-i18n="our" style="color:inherit">
+          OUR
+        </span>
+
+        <span data-i18n="programsTitle">
+          PROGRAMS
+        </span>
+      </h2>
+
+      <div class="course-grid">
+
+        <article class="course-card">
+          <h3 data-i18n="beginner">BEGINNER</h3>
+
+          <p data-i18n="beginnerDesc">
+            Personalized workouts, nutrition guidance,
+            basic AI coaching and progress tracking.
+          </p>
+
+          <div class="price" data-price="29">
+            ₪29 / month
+          </div>
+
+          <a
+            href="signup.html?plan=beginner"
+            class="btn course-btn"
+            data-join="beginner"
+          >
+            JOIN BEGINNER →
+          </a>
+        </article>
+
+        <article class="course-card featured">
+
+          <div class="tag" data-i18n="popular">
+            MOST POPULAR
+          </div>
+
+          <h3 data-i18n="pro">PRO</h3>
+
+          <p data-i18n="proDesc">
+            Everything in Beginner, plus meal photo
+            analysis, advanced nutrition tracking
+            and statistics.
+          </p>
+
+          <div class="price" data-price="49">
+            ₪49 / month
+          </div>
+
+          <a
+            href="signup.html?plan=pro"
+            class="btn course-btn"
+            data-join="pro"
+          >
+            JOIN PRO →
+          </a>
+        </article>
+
+        <article class="course-card">
+          <h3 data-i18n="premium">PREMIUM</h3>
+
+          <p data-i18n="premiumDesc">
+            Everything in Pro, plus daily AI coaching,
+            weekly reviews, Calisthenics
+            and grocery guidance.
+          </p>
+
+          <div class="price" data-price="79">
+            ₪79 / month
+          </div>
+
+          <a
+            href="signup.html?plan=premium"
+            class="btn course-btn"
+            data-join="premium"
+          >
+            JOIN PREMIUM →
+          </a>
+        </article>
+
+      </div>
+    </section>
+
+    <section class="about" id="about">
+
+      <p class="eyebrow" data-i18n="aboutEyebrow">
+        MORE THAN A WORKOUT
+      </p>
+
+      <h2>
+        <span data-i18n="about1" style="color:inherit">
+          TRAIN SMARTER.
+        </span>
+
+        <span data-i18n="about2">
+          LIVE STRONGER.
+        </span>
+      </h2>
+
+      <p data-i18n="aboutDesc">
+        Body Mode combines training, nutrition
+        and technology to help you make
+        consistent progress.
+      </p>
+
+    </section>
+
+  </main>
+
+  <footer>
+    <p>
+      © 2026 Body Mode.
+      <span data-i18n="rights">
+        All rights reserved.
+      </span>
+    </p>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+      const homepageTranslations = {
+        en: {
+          eyebrow: "BUILD YOUR BEST VERSION",
+          hero1: "UNLOCK YOUR",
+          hero2: "FULL POTENTIAL.",
+          heroDesc: "Transform your body with structured workouts, smart nutrition and powerful training programs.",
+          start: "START YOUR JOURNEY →",
+          choose: "CHOOSE YOUR PATH",
+          our: "OUR",
+          programsTitle: "PROGRAMS",
+          beginnerDesc: "Personalized workouts, nutrition guidance, basic AI coaching and progress tracking.",
+          proDesc: "Everything in Beginner, plus meal photo analysis, advanced nutrition tracking and statistics.",
+          premiumDesc: "Everything in Pro, plus daily AI coaching, weekly reviews, Calisthenics and grocery guidance.",
+          popular: "MOST POPULAR",
+          aboutEyebrow: "MORE THAN A WORKOUT",
+          about1: "TRAIN SMARTER.",
+          about2: "LIVE STRONGER.",
+          aboutDesc: "Body Mode combines training, nutrition and technology to help you make consistent progress.",
+          rights: "All rights reserved.",
+          accountLogout: "LOG OUT"
+        },
+        ar: {
+          eyebrow: "ابنِ أفضل نسخة من نفسك",
+          hero1: "اكتشف",
+          hero2: "كامل قدراتك.",
+          heroDesc: "غيّر جسمك مع تمارين منظمة وتغذية ذكية وبرامج تدريب قوية.",
+          start: "ابدأ رحلتك ←",
+          choose: "اختر طريقك",
+          our: "برامجنا",
+          programsTitle: "الرياضية",
+          beginnerDesc: "تمارين شخصية، إرشادات غذائية، مدرب ذكي أساسي ومتابعة التقدم.",
+          proDesc: "كل مميزات المبتدئ، بالإضافة إلى تحليل صور الوجبات ومتابعة التغذية والإحصائيات المتقدمة.",
+          premiumDesc: "كل مميزات برو، بالإضافة إلى تدريب ذكي يومي ومراجعات أسبوعية وتمارين الكاليستنكس وإرشادات التسوق.",
+          popular: "الأكثر شعبية",
+          aboutEyebrow: "أكثر من مجرد تمارين",
+          about1: "تمرّن بذكاء.",
+          about2: "عِش بقوة.",
+          aboutDesc: "يجمع Body Mode بين التمارين والتغذية والتكنولوجيا لمساعدتك على تحقيق تقدم مستمر.",
+          rights: "جميع الحقوق محفوظة.",
+          accountLogout: "تسجيل خروج"
+        },
+        he: {
+          eyebrow: "בנו את הגרסה הטובה ביותר שלכם",
+          hero1: "גלו את",
+          hero2: "מלוא הפוטנציאל שלכם.",
+          heroDesc: "שנו את הגוף שלכם עם אימונים מסודרים, תזונה חכמה ותוכניות אימון מתקדמות.",
+          start: "התחילו את המסע ←",
+          choose: "בחרו את הדרך שלכם",
+          our: "התוכניות",
+          programsTitle: "שלנו",
+          beginnerDesc: "אימונים אישיים, הדרכה תזונתית, אימון AI בסיסי ומעקב התקדמות.",
+          proDesc: "כל מה שכלול במתחילים, בתוספת ניתוח תמונות ארוחות ומעקב תזונתי מתקדם.",
+          premiumDesc: "כל מה שכלול ב-Pro, בתוספת אימון AI יומי, סקירות שבועיות, קליסטניקס והדרכת קניות.",
+          popular: "הכי פופולרי",
+          aboutEyebrow: "יותר מסתם אימון",
+          about1: "התאמנו חכם יותר.",
+          about2: "חיו חזק יותר.",
+          aboutDesc: "Body Mode משלב אימונים, תזונה וטכנולוגיה כדי לעזור לכם להתקדם בעקביות.",
+          rights: "כל הזכויות שמורות.",
+          accountLogout: "התנתקות"
+        },
+        es: {
+          eyebrow: "CONSTRUYE TU MEJOR VERSIÓN",
+          hero1: "DESBLOQUEA",
+          hero2: "TODO TU POTENCIAL.",
+          heroDesc: "Transforma tu cuerpo con entrenamientos estructurados, nutrición inteligente y programas potentes.",
+          start: "COMIENZA TU VIAJE →",
+          choose: "ELIGE TU CAMINO",
+          our: "NUESTROS",
+          programsTitle: "PROGRAMAS",
+          beginnerDesc: "Entrenamientos personalizados, orientación nutricional, IA básica y seguimiento del progreso.",
+          proDesc: "Todo lo de Principiante, más análisis de fotos de comidas y estadísticas avanzadas.",
+          premiumDesc: "Todo lo de Pro, más entrenamiento IA diario, revisiones semanales, calistenia y ayuda para comprar alimentos.",
+          popular: "MÁS POPULAR",
+          aboutEyebrow: "MÁS QUE ENTRENAMIENTO",
+          about1: "ENTRENA MEJOR.",
+          about2: "VIVE MÁS FUERTE.",
+          aboutDesc: "Body Mode combina entrenamiento, nutrición y tecnología para ayudarte a progresar.",
+          rights: "Todos los derechos reservados.",
+          accountLogout: "CERRAR SESIÓN"
+        },
+        fr: {
+          eyebrow: "DEVENEZ LA MEILLEURE VERSION DE VOUS-MÊME",
+          hero1: "LIBÉREZ",
+          hero2: "VOTRE POTENTIEL.",
+          heroDesc: "Transformez votre corps avec des entraînements structurés et une nutrition intelligente.",
+          start: "COMMENCEZ VOTRE PARCOURS →",
+          choose: "CHOISISSEZ VOTRE VOIE",
+          our: "NOS",
+          programsTitle: "PROGRAMMES",
+          beginnerDesc: "Entraînements personnalisés, conseils nutritionnels, IA de base et suivi des progrès.",
+          proDesc: "Tout le programme Débutant, plus analyse des photos de repas et statistiques avancées.",
+          premiumDesc: "Tout le programme Pro, plus coaching IA quotidien, bilans hebdomadaires, callisthénie et conseils d'achat.",
+          popular: "LE PLUS POPULAIRE",
+          aboutEyebrow: "PLUS QU'UN ENTRAÎNEMENT",
+          about1: "ENTRAÎNEZ-VOUS MIEUX.",
+          about2: "VIVEZ PLUS FORT.",
+          aboutDesc: "Body Mode associe entraînement, nutrition et technologie pour vous aider à progresser.",
+          rights: "Tous droits réservés.",
+          accountLogout: "DÉCONNEXION"
+        },
+        de: {
+          eyebrow: "WERDE DIE BESTE VERSION DEINER SELBST",
+          hero1: "ENTFALTE DEIN",
+          hero2: "VOLLES POTENZIAL.",
+          heroDesc: "Verändere deinen Körper mit strukturiertem Training und intelligenter Ernährung.",
+          start: "STARTE DEINE REISE →",
+          choose: "WÄHLE DEINEN WEG",
+          our: "UNSERE",
+          programsTitle: "PROGRAMME",
+          beginnerDesc: "Individuelle Trainingspläne, Ernährungstipps, grundlegendes KI-Coaching und Fortschrittskontrolle.",
+          proDesc: "Alles aus Anfänger, plus Mahlzeiten-Fotoanalyse und erweiterte Statistiken.",
+          premiumDesc: "Alles aus Pro, plus tägliches KI-Coaching, wöchentliche Auswertungen, Calisthenics und Einkaufshilfe.",
+          popular: "AM BELIEBTESTEN",
+          aboutEyebrow: "MEHR ALS NUR TRAINING",
+          about1: "TRAINIERE SMARTER.",
+          about2: "LEBE STÄRKER.",
+          aboutDesc: "Body Mode verbindet Training, Ernährung und Technologie für nachhaltige Fortschritte.",
+          rights: "Alle Rechte vorbehalten.",
+          accountLogout: "ABMELDEN"
+        },
+        tr: {
+          eyebrow: "EN İYİ VERSİYONUNU OLUŞTUR",
+          hero1: "TÜM",
+          hero2: "POTANSİYELİNİ KEŞFET.",
+          heroDesc: "Planlı antrenmanlar ve akıllı beslenmeyle vücudunu dönüştür.",
+          start: "YOLCULUĞUNA BAŞLA →",
+          choose: "YOLUNU SEÇ",
+          our: "BİZİM",
+          programsTitle: "PROGRAMLARIMIZ",
+          beginnerDesc: "Kişisel antrenmanlar, beslenme rehberliği, temel yapay zekâ koçluğu ve ilerleme takibi.",
+          proDesc: "Başlangıç paketindeki her şey, ayrıca yemek fotoğrafı analizi ve gelişmiş istatistikler.",
+          premiumDesc: "Pro paketindeki her şey, ayrıca günlük yapay zekâ koçluğu, haftalık değerlendirmeler, kalistenik ve alışveriş rehberi.",
+          popular: "EN POPÜLER",
+          aboutEyebrow: "ANTRENMANDAN DAHA FAZLASI",
+          about1: "DAHA AKILLI ANTRENMAN.",
+          about2: "DAHA GÜÇLÜ YAŞAM.",
+          aboutDesc: "Body Mode, sürekli gelişim için antrenman, beslenme ve teknolojiyi birleştirir.",
+          rights: "Tüm hakları saklıdır.",
+          accountLogout: "ÇIKIŞ YAP"
+        },
+        pt: {
+          eyebrow: "CONSTRUA SUA MELHOR VERSÃO",
+          hero1: "DESBLOQUEIE",
+          hero2: "SEU POTENCIAL.",
+          heroDesc: "Transforme seu corpo com treinos estruturados e nutrição inteligente.",
+          start: "COMECE SUA JORNADA →",
+          choose: "ESCOLHA SEU CAMINHO",
+          our: "NOSSOS",
+          programsTitle: "PROGRAMAS",
+          beginnerDesc: "Treinos personalizados, orientação nutricional, IA básica e acompanhamento do progresso.",
+          proDesc: "Tudo do Iniciante, mais análise de fotos das refeições e estatísticas avançadas.",
+          premiumDesc: "Tudo do Pro, mais coaching IA diário, revisões semanais, calistenia e orientação de compras.",
+          popular: "MAIS POPULAR",
+          aboutEyebrow: "MAIS QUE UM TREINO",
+          about1: "TREINE MELHOR.",
+          about2: "VIVA MAIS FORTE.",
+          aboutDesc: "Body Mode combina treino, nutrição e tecnologia para ajudar você a progredir.",
+          rights: "Todos os direitos reservados.",
+          accountLogout: "SAIR"
+        },
+        ru: {
+          eyebrow: "СТАНЬТЕ ЛУЧШЕЙ ВЕРСИЕЙ СЕБЯ",
+          hero1: "РАСКРОЙТЕ",
+          hero2: "СВОЙ ПОТЕНЦИАЛ.",
+          heroDesc: "Преобразите тело с помощью продуманных тренировок и правильного питания.",
+          start: "НАЧАТЬ ПУТЬ →",
+          choose: "ВЫБЕРИТЕ СВОЙ ПУТЬ",
+          our: "НАШИ",
+          programsTitle: "ПРОГРАММЫ",
+          beginnerDesc: "Персональные тренировки, советы по питанию, базовый ИИ и отслеживание прогресса.",
+          proDesc: "Всё из начального плана, плюс анализ фото еды и расширенная статистика.",
+          premiumDesc: "Всё из Pro, плюс ежедневный ИИ-коучинг, еженедельные обзоры, калистеника и помощь с покупками.",
+          popular: "САМЫЙ ПОПУЛЯРНЫЙ",
+          aboutEyebrow: "БОЛЬШЕ ЧЕМ ТРЕНИРОВКИ",
+          about1: "ТРЕНИРУЙТЕСЬ УМНЕЕ.",
+          about2: "ЖИВИТЕ СИЛЬНЕЕ.",
+          aboutDesc: "Body Mode объединяет тренировки, питание и технологии для стабильного прогресса.",
+          rights: "Все права защищены.",
+          accountLogout: "ВЫЙТИ"
+        },
+        it: {
+          eyebrow: "DIVENTA LA VERSIONE MIGLIORE DI TE",
+          hero1: "LIBERA IL TUO",
+          hero2: "PIENO POTENZIALE.",
+          heroDesc: "Trasforma il tuo corpo con allenamenti strutturati e nutrizione intelligente.",
+          start: "INIZIA IL TUO PERCORSO →",
+          choose: "SCEGLI IL TUO PERCORSO",
+          our: "I NOSTRI",
+          programsTitle: "PROGRAMMI",
+          beginnerDesc: "Allenamenti personalizzati, consigli nutrizionali, IA di base e monitoraggio dei progressi.",
+          proDesc: "Tutto di Principiante, più analisi foto dei pasti e statistiche avanzate.",
+          premiumDesc: "Tutto di Pro, più coaching IA quotidiano, revisioni settimanali, calisthenics e guida alla spesa.",
+          popular: "PIÙ POPOLARE",
+          aboutEyebrow: "PIÙ DI UN ALLENAMENTO",
+          about1: "ALLENATI MEGLIO.",
+          about2: "VIVI PIÙ FORTE.",
+          aboutDesc: "Body Mode combina allenamento, nutrizione e tecnologia per aiutarti a migliorare.",
+          rights: "Tutti i diritti riservati.",
+          accountLogout: "ESCI"
+        }
+      };
+
+      if (typeof translations !== "undefined") {
+        for (const lang of Object.keys(homepageTranslations)) {
+          if (translations[lang]) {
+            Object.assign(
+              translations[lang],
+              homepageTranslations[lang]
+            );
+          }
+        }
+      }
+
+      function updateLogoutLanguage() {
+        const lang = typeof getLanguage === "function"
+          ? getLanguage()
+          : localStorage.getItem("bodymode_language") || "en";
+
+        const dictionary =
+          homepageTranslations[lang] || homepageTranslations.en;
+
+        document.getElementById("logoutButton").textContent =
+          dictionary.accountLogout;
+      }
+
+      if (typeof applyTranslations === "function") {
+        applyTranslations();
+      }
+
+      updateLogoutLanguage();
+
+      document.addEventListener(
+        "bodymode:languagechange",
+        updateLogoutLanguage
+      );
+
+      const loginLink = document.getElementById("loginLink");
+      const signupLink = document.getElementById("signupLink");
+      const dashboardLink = document.getElementById("dashboardLink");
+      const logoutButton = document.getElementById("logoutButton");
+
+      let signedIn = false;
+
+      function updateAuthUI(isSignedIn) {
+        signedIn = isSignedIn;
+
+        loginLink.style.display = isSignedIn ? "none" : "";
+        signupLink.style.display = isSignedIn ? "none" : "";
+
+        loginLink.classList.remove("auth-loading");
+        signupLink.classList.remove("auth-loading");
+
+        dashboardLink.style.display = isSignedIn ? "" : "none";
+        logoutButton.style.display = isSignedIn ? "" : "none";
+      }
+
+      async function checkAuth() {
+        try {
+          if (typeof supabaseClient === "undefined") {
+            console.error("Supabase client not found.");
+            updateAuthUI(false);
+            return;
+          }
+
+          const { data, error } =
+            await supabaseClient.auth.getSession();
+
+          if (error) {
+            console.error("Session error:", error.message);
+            updateAuthUI(false);
+            return;
+          }
+
+          updateAuthUI(Boolean(data.session));
+
+        } catch (error) {
+          console.error("Auth error:", error);
+          updateAuthUI(false);
+        }
+      }
+
+      document.querySelectorAll("[data-join]").forEach(link => {
+        link.addEventListener("click", event => {
+          if (!signedIn) return;
+
+          event.preventDefault();
+
+          const plan = link.dataset.join;
+
+          window.location.href =
+            "dashboard.html?plan=" + encodeURIComponent(plan);
+        });
+      });
+
+      logoutButton.addEventListener("click", async () => {
+        if (typeof supabaseClient === "undefined") return;
+
+        logoutButton.disabled = true;
+
+        const { error } = await supabaseClient.auth.signOut();
+
+        logoutButton.disabled = false;
+
+        if (error) {
+          console.error("Logout error:", error.message);
+          return;
+        }
+
+        updateAuthUI(false);
+        window.location.href = "index.html";
+      });
+
+      if (typeof supabaseClient !== "undefined") {
+        supabaseClient.auth.onAuthStateChange(
+          (event, session) => {
+            updateAuthUI(Boolean(session));
+          }
+        );
+      }
+
+      checkAuth();
+
+    });
+  </script>
+
+</body>
+</html>

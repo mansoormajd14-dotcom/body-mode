@@ -1,0 +1,595 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard | Body Mode</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+*{box-sizing:border-box}
+body{background:#0b0b0b;color:#fff;margin:0}
+.dashboard{min-height:85vh;padding:80px 7%}
+.dashboard-header{text-align:center;margin-bottom:45px}
+.dashboard-header h1{font-size:clamp(32px,5vw,55px);letter-spacing:-2px}
+.dashboard-header h1 span{color:#e8bc50}
+.dashboard-header p{color:#aaa;overflow-wrap:anywhere}
+.dashboard-grid{
+display:grid;grid-template-columns:repeat(3,1fr);
+gap:25px;max-width:1200px;margin:auto
+}
+.dash-card{
+background:#151515;border:1px solid #333;
+border-radius:16px;padding:30px;min-width:0
+}
+.dash-card .icon{font-size:35px;margin-bottom:20px}
+.dash-card h3{font-size:22px;margin-bottom:15px}
+.dash-card p{color:#aaa;line-height:1.7}
+.dash-card .btn{display:inline-block;margin-top:20px}
+.dash-card.wide{grid-column:span 2}
+.progress-bar{
+height:12px;background:#333;border-radius:20px;
+overflow:hidden;margin-top:20px
+}
+.progress-fill{height:100%;width:0;background:#e8bc50}
+.profile-grid{
+display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+gap:14px;margin-top:20px
+}
+.profile-item{
+background:#202020;border:1px solid #303030;
+padding:15px;border-radius:10px;overflow-wrap:anywhere
+}
+.profile-item small{display:block;color:#999;margin-bottom:7px}
+.profile-item strong{color:#f2cd75;font-size:16px}
+.status-pill{
+display:inline-block;padding:7px 12px;
+border:1px solid #705d2b;border-radius:30px;
+color:#e8bc50;background:#292315;font-size:13px
+}
+#loading{
+text-align:center;margin-top:100px;
+color:#e8bc50;font-size:20px
+}
+#dashboardContent{display:none}
+#logoutBtn{display:none;color:#e8bc50;cursor:pointer}
+#message{color:#ff7777;text-align:center;margin-top:20px}
+.language-select{
+background:#151515;color:#e8bc50;
+border:1px solid #e8bc50;border-radius:8px;
+padding:9px 12px;font-size:13px;max-width:155px
+}
+.navbar nav{
+display:flex;align-items:center;flex-wrap:wrap;gap:15px
+}
+[dir="rtl"] .dash-card{text-align:right}
+@media(max-width:900px){
+.dashboard-grid{grid-template-columns:1fr}
+.dash-card.wide{grid-column:auto}
+}
+@media(max-width:500px){
+.profile-grid{grid-template-columns:1fr}
+.language-select{max-width:125px;padding:7px}
+.dashboard{padding:60px 5%}
+}
+</style>
+</head>
+
+<body>
+
+<header class="navbar">
+<a href="index.html" class="logo">
+⚡ BODY<span>MODE</span>
+</a>
+<nav>
+<a href="index.html" data-i18n="home">Home</a>
+<a href="index.html#courses" data-i18n="programs">Programs</a>
+<a href="#" id="logoutBtn" data-i18n="logout">LOGOUT</a>
+<select id="languageSelect" class="language-select"
+aria-label="Choose language"></select>
+</nav>
+</header>
+
+<div id="loading" data-i18n="checkingAccount">
+Checking your account...
+</div>
+
+<main id="dashboardContent" class="dashboard">
+
+<section class="dashboard-header">
+<p class="eyebrow" data-i18n="personalSpace">
+YOUR PERSONAL SPACE
+</p>
+<h1 data-i18n="myDashboard">MY DASHBOARD</h1>
+<p id="userEmail"></p>
+</section>
+
+<section class="dashboard-grid">
+
+<div class="dash-card">
+<div class="icon">📚</div>
+<h3 data-i18n="myCourses">My Courses</h3>
+<p data-i18n="noCourses">No course purchased yet.</p>
+<a href="index.html#courses" class="btn"
+data-i18n="viewPrograms">VIEW PROGRAMS →</a>
+</div>
+
+<div class="dash-card">
+<div class="icon">📈</div>
+<h3 data-i18n="myProgress">My Progress</h3>
+<p id="progressDescription">
+0% <span data-i18n="completed">completed</span>
+</p>
+<div class="progress-bar">
+<div class="progress-fill" id="progressFill"></div>
+</div>
+</div>
+
+<div class="dash-card">
+<div class="icon">⚡</div>
+<h3 data-i18n="aiCoach">AI Coach</h3>
+<p data-i18n="coachComing">
+Your personal fitness assistant is coming soon.
+</p>
+<a href="ai.html" class="btn" id="aiCoachLink">
+OPEN AI COACH →
+</a>
+</div>
+
+<div class="dash-card wide">
+<div class="icon">👤</div>
+<h3 id="profileHeading">My Fitness Profile</h3>
+<span class="status-pill" id="profileStatus">Checking profile...</span>
+<p id="profileDescription"></p>
+<div class="profile-grid" id="profileDetails"></div>
+<a href="onboarding.html" class="btn" id="editProfileBtn">
+EDIT PROFILE →
+</a>
+</div>
+
+<div class="dash-card">
+<div class="icon">🎯</div>
+<h3 id="goalHeading">My Goal</h3>
+<p id="goalDescription">Your goal will appear here.</p>
+<h3 id="targetHeading" style="color:#e8bc50"></h3>
+<p id="timelineDescription"></p>
+</div>
+
+</section>
+
+<p id="message" role="alert"></p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="translations.js"></script>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const dashboardMessages = {
+en:{
+loggedIn:"Logged in",connectionError:"Connection error. Check Supabase configuration.",
+profileHeading:"My Fitness Profile",profileReady:"Profile saved",
+profileMissing:"Profile not completed",profileError:"Could not load profile",
+profileDescription:"Your saved information from onboarding.",
+profileMissingDescription:"Complete your fitness profile to personalize your experience.",
+editProfile:"EDIT PROFILE →",completeProfile:"COMPLETE PROFILE →",
+goalHeading:"My Goal",goalMissing:"Complete your profile to set your goal.",
+target:"Target weight",timeline:"Timeline",
+age:"Age",height:"Height",weight:"Current weight",sex:"Sex",
+goal:"Goal",location:"Training location",experience:"Experience",
+days:"Training days/week",duration:"Session duration",diet:"Diet",
+meals:"Meals/day",activity:"Daily activity",sleep:"Sleep",
+kg:"kg",cm:"cm",minutes:"min",
+progressUnavailable:"Training progress tracking is not active yet.",
+openCoach:"OPEN AI COACH →",
+male:"Male",female:"Female",prefer_not:"Prefer not to say",
+muscle:"Build muscle",fat_loss:"Lose fat",strength:"Get stronger",
+fitness:"Improve fitness",maintain:"Maintain weight",
+gym:"Gym",home:"Home",both:"Both",
+beginner:"Beginner",intermediate:"Intermediate",advanced:"Advanced",
+anything:"No restrictions",vegetarian:"Vegetarian",vegan:"Vegan",halal:"Halal",
+sedentary:"Mostly sitting",light:"Some walking",active:"Active",
+very_active:"Very active",under6:"Under 6 hours","6to7":"6–7 hours",
+"7to8":"7–8 hours",over8:"Over 8 hours",
+"3months":"3 months","6months":"6 months",
+"12months":"12 months",flexible:"Flexible"
+},
+ar:{
+loggedIn:"تم تسجيل الدخول",connectionError:"خطأ في الاتصال مع Supabase.",
+profileHeading:"ملفي الرياضي",profileReady:"الملف محفوظ",
+profileMissing:"الملف غير مكتمل",profileError:"تعذر تحميل الملف",
+profileDescription:"معلوماتك المحفوظة من أسئلة البداية.",
+profileMissingDescription:"كمّل ملفك الرياضي حتى نقدر نخصص تجربتك.",
+editProfile:"تعديل الملف ←",completeProfile:"إكمال الملف ←",
+goalHeading:"هدفي",goalMissing:"كمّل ملفك لتحديد هدفك.",
+target:"الوزن المستهدف",timeline:"المدة",
+age:"العمر",height:"الطول",weight:"الوزن الحالي",sex:"الجنس",
+goal:"الهدف",location:"مكان التمرين",experience:"الخبرة",
+days:"أيام التمرين بالأسبوع",duration:"مدة الحصة",diet:"النظام الغذائي",
+meals:"الوجبات يوميًا",activity:"النشاط اليومي",sleep:"النوم",
+kg:"كغم",cm:"سم",minutes:"دقيقة",
+progressUnavailable:"متابعة تقدم التمارين لسه مش مفعّلة.",
+openCoach:"افتح المدرب الذكي ←",
+male:"ذكر",female:"أنثى",prefer_not:"أفضل عدم الإجابة",
+muscle:"بناء عضلات",fat_loss:"خسارة دهون",strength:"زيادة القوة",
+fitness:"تحسين اللياقة",maintain:"الحفاظ على الوزن",
+gym:"النادي الرياضي",home:"البيت",both:"الاثنين",
+beginner:"مبتدئ",intermediate:"متوسط",advanced:"متقدم",
+anything:"بدون قيود",vegetarian:"نباتي",vegan:"نباتي بالكامل",halal:"حلال",
+sedentary:"جلوس معظم اليوم",light:"مشي قليل",active:"نشط",
+very_active:"نشط جدًا",under6:"أقل من 6 ساعات","6to7":"6–7 ساعات",
+"7to8":"7–8 ساعات",over8:"أكثر من 8 ساعات",
+"3months":"3 أشهر","6months":"6 أشهر",
+"12months":"12 شهر",flexible:"بدون موعد محدد"
+},
+he:{
+loggedIn:"מחובר",connectionError:"שגיאת חיבור ל-Supabase.",
+profileHeading:"הפרופיל שלי",profileReady:"הפרופיל נשמר",
+profileMissing:"הפרופיל לא הושלם",profileError:"לא ניתן לטעון את הפרופיל",
+profileDescription:"המידע ששמרת בשאלון.",
+profileMissingDescription:"יש להשלים את הפרופיל להתאמה אישית.",
+editProfile:"עריכת הפרופיל ←",completeProfile:"השלמת הפרופיל ←",
+goalHeading:"המטרה שלי",goalMissing:"יש להשלים את הפרופיל כדי להגדיר מטרה.",
+target:"משקל יעד",timeline:"תקופה",
+age:"גיל",height:"גובה",weight:"משקל נוכחי",sex:"מין",
+goal:"מטרה",location:"מקום אימון",experience:"ניסיון",
+days:"ימי אימון בשבוע",duration:"משך אימון",diet:"תזונה",
+meals:"ארוחות ביום",activity:"פעילות יומית",sleep:"שינה",
+kg:"ק״ג",cm:"ס״מ",minutes:"דקות",
+progressUnavailable:"מעקב התקדמות האימונים עדיין לא פעיל.",
+openCoach:"פתיחת מאמן AI ←",
+male:"זכר",female:"נקבה",prefer_not:"לא לציין",
+muscle:"בניית שרירים",fat_loss:"ירידה בשומן",strength:"חיזוק כוח",
+fitness:"שיפור הכושר",maintain:"שמירה על משקל",
+gym:"חדר כושר",home:"בית",both:"שניהם",
+beginner:"מתחיל",intermediate:"בינוני",advanced:"מתקדם",
+anything:"ללא הגבלות",vegetarian:"צמחוני",vegan:"טבעוני",halal:"חלאל",
+sedentary:"בעיקר ישיבה",light:"מעט הליכה",active:"פעיל",
+very_active:"פעיל מאוד",under6:"פחות מ-6 שעות","6to7":"6–7 שעות",
+"7to8":"7–8 שעות",over8:"מעל 8 שעות",
+"3months":"3 חודשים","6months":"6 חודשים",
+"12months":"12 חודשים",flexible:"ללא מועד קבוע"
+},
+es:{
+profileHeading:"Mi perfil físico",profileReady:"Perfil guardado",
+profileMissing:"Perfil incompleto",profileError:"No se pudo cargar el perfil",
+profileDescription:"Tu información guardada.",
+profileMissingDescription:"Completa tu perfil para personalizar tu experiencia.",
+editProfile:"EDITAR PERFIL →",completeProfile:"COMPLETAR PERFIL →",
+goalHeading:"Mi objetivo",goalMissing:"Completa tu perfil para definir tu objetivo.",
+target:"Peso objetivo",timeline:"Plazo",age:"Edad",height:"Altura",
+weight:"Peso actual",sex:"Sexo",goal:"Objetivo",location:"Lugar de entrenamiento",
+experience:"Experiencia",days:"Días por semana",duration:"Duración",
+diet:"Dieta",meals:"Comidas al día",activity:"Actividad",sleep:"Sueño",
+progressUnavailable:"El seguimiento de entrenamiento aún no está activo.",
+openCoach:"ABRIR COACH IA →",
+muscle:"Ganar músculo",fat_loss:"Perder grasa",strength:"Ganar fuerza",
+fitness:"Mejorar forma",maintain:"Mantener peso",
+gym:"Gimnasio",home:"Casa",both:"Ambos"
+},
+fr:{
+profileHeading:"Mon profil sportif",profileReady:"Profil enregistré",
+profileMissing:"Profil incomplet",profileError:"Impossible de charger le profil",
+profileDescription:"Vos informations enregistrées.",
+profileMissingDescription:"Complétez votre profil pour personnaliser votre expérience.",
+editProfile:"MODIFIER LE PROFIL →",completeProfile:"COMPLÉTER LE PROFIL →",
+goalHeading:"Mon objectif",goalMissing:"Complétez votre profil pour définir votre objectif.",
+target:"Poids cible",timeline:"Délai",age:"Âge",height:"Taille",
+weight:"Poids actuel",sex:"Sexe",goal:"Objectif",location:"Lieu d'entraînement",
+experience:"Expérience",days:"Jours par semaine",duration:"Durée",
+diet:"Régime",meals:"Repas par jour",activity:"Activité",sleep:"Sommeil",
+progressUnavailable:"Le suivi des entraînements n'est pas encore actif.",
+openCoach:"OUVRIR COACH IA →",
+muscle:"Prendre du muscle",fat_loss:"Perdre de la graisse",
+strength:"Gagner en force",fitness:"Améliorer la forme",
+maintain:"Maintenir le poids",gym:"Salle de sport",home:"Maison",both:"Les deux"
+},
+de:{
+profileHeading:"Mein Fitnessprofil",profileReady:"Profil gespeichert",
+profileMissing:"Profil unvollständig",profileError:"Profil konnte nicht geladen werden",
+profileDescription:"Deine gespeicherten Angaben.",
+profileMissingDescription:"Vervollständige dein Profil für eine persönliche Erfahrung.",
+editProfile:"PROFIL BEARBEITEN →",completeProfile:"PROFIL VERVOLLSTÄNDIGEN →",
+goalHeading:"Mein Ziel",goalMissing:"Vervollständige dein Profil, um dein Ziel festzulegen.",
+target:"Zielgewicht",timeline:"Zeitrahmen",age:"Alter",height:"Größe",
+weight:"Aktuelles Gewicht",sex:"Geschlecht",goal:"Ziel",
+location:"Trainingsort",experience:"Erfahrung",days:"Tage pro Woche",
+duration:"Dauer",diet:"Ernährung",meals:"Mahlzeiten pro Tag",
+activity:"Aktivität",sleep:"Schlaf",
+progressUnavailable:"Trainingsfortschritt wird noch nicht erfasst.",
+openCoach:"KI-COACH ÖFFNEN →",
+muscle:"Muskeln aufbauen",fat_loss:"Fett verlieren",
+strength:"Stärker werden",fitness:"Fitness verbessern",
+maintain:"Gewicht halten",gym:"Fitnessstudio",home:"Zuhause",both:"Beides"
+},
+tr:{
+profileHeading:"Fitness Profilim",profileReady:"Profil kaydedildi",
+profileMissing:"Profil tamamlanmadı",profileError:"Profil yüklenemedi",
+profileDescription:"Kaydedilmiş bilgilerin.",
+profileMissingDescription:"Kişiselleştirme için profilini tamamla.",
+editProfile:"PROFİLİ DÜZENLE →",completeProfile:"PROFİLİ TAMAMLA →",
+goalHeading:"Hedefim",goalMissing:"Hedefini belirlemek için profilini tamamla.",
+target:"Hedef kilo",timeline:"Süre",age:"Yaş",height:"Boy",
+weight:"Mevcut kilo",sex:"Cinsiyet",goal:"Hedef",location:"Antrenman yeri",
+experience:"Deneyim",days:"Haftalık gün",duration:"Süre",
+diet:"Beslenme",meals:"Günlük öğün",activity:"Aktivite",sleep:"Uyku",
+progressUnavailable:"Antrenman ilerleme takibi henüz aktif değil.",
+openCoach:"AI KOÇU AÇ →",
+muscle:"Kas geliştirmek",fat_loss:"Yağ kaybetmek",
+strength:"Güçlenmek",fitness:"Kondisyon geliştirmek",
+maintain:"Kiloyu korumak",gym:"Spor salonu",home:"Ev",both:"Her ikisi"
+},
+pt:{
+profileHeading:"Meu perfil físico",profileReady:"Perfil salvo",
+profileMissing:"Perfil incompleto",profileError:"Não foi possível carregar o perfil",
+profileDescription:"Suas informações salvas.",
+profileMissingDescription:"Complete seu perfil para personalizar sua experiência.",
+editProfile:"EDITAR PERFIL →",completeProfile:"COMPLETAR PERFIL →",
+goalHeading:"Meu objetivo",goalMissing:"Complete seu perfil para definir seu objetivo.",
+target:"Peso desejado",timeline:"Prazo",age:"Idade",height:"Altura",
+weight:"Peso atual",sex:"Sexo",goal:"Objetivo",location:"Local de treino",
+experience:"Experiência",days:"Dias por semana",duration:"Duração",
+diet:"Dieta",meals:"Refeições por dia",activity:"Atividade",sleep:"Sono",
+progressUnavailable:"O acompanhamento dos treinos ainda não está ativo.",
+openCoach:"ABRIR COACH IA →",
+muscle:"Ganhar músculos",fat_loss:"Perder gordura",
+strength:"Ganhar força",fitness:"Melhorar condicionamento",
+maintain:"Manter peso",gym:"Academia",home:"Casa",both:"Ambos"
+},
+ru:{
+profileHeading:"Мой фитнес-профиль",profileReady:"Профиль сохранён",
+profileMissing:"Профиль не заполнен",profileError:"Не удалось загрузить профиль",
+profileDescription:"Ваши сохранённые данные.",
+profileMissingDescription:"Заполните профиль для персонализации.",
+editProfile:"ИЗМЕНИТЬ ПРОФИЛЬ →",completeProfile:"ЗАПОЛНИТЬ ПРОФИЛЬ →",
+goalHeading:"Моя цель",goalMissing:"Заполните профиль, чтобы выбрать цель.",
+target:"Желаемый вес",timeline:"Срок",age:"Возраст",height:"Рост",
+weight:"Текущий вес",sex:"Пол",goal:"Цель",location:"Место тренировок",
+experience:"Опыт",days:"Дней в неделю",duration:"Длительность",
+diet:"Питание",meals:"Приёмов пищи",activity:"Активность",sleep:"Сон",
+progressUnavailable:"Отслеживание тренировок пока не работает.",
+openCoach:"ОТКРЫТЬ ИИ-ТРЕНЕРА →",
+muscle:"Набрать мышцы",fat_loss:"Сбросить жир",
+strength:"Стать сильнее",fitness:"Улучшить форму",
+maintain:"Поддерживать вес",gym:"Спортзал",home:"Дом",both:"Оба"
+},
+it:{
+profileHeading:"Il mio profilo fitness",profileReady:"Profilo salvato",
+profileMissing:"Profilo incompleto",profileError:"Impossibile caricare il profilo",
+profileDescription:"Le tue informazioni salvate.",
+profileMissingDescription:"Completa il profilo per personalizzare la tua esperienza.",
+editProfile:"MODIFICA PROFILO →",completeProfile:"COMPLETA PROFILO →",
+goalHeading:"Il mio obiettivo",goalMissing:"Completa il profilo per impostare il tuo obiettivo.",
+target:"Peso obiettivo",timeline:"Periodo",age:"Età",height:"Altezza",
+weight:"Peso attuale",sex:"Sesso",goal:"Obiettivo",
+location:"Luogo di allenamento",experience:"Esperienza",
+days:"Giorni a settimana",duration:"Durata",diet:"Alimentazione",
+meals:"Pasti al giorno",activity:"Attività",sleep:"Sonno",
+progressUnavailable:"Il monitoraggio degli allenamenti non è ancora attivo.",
+openCoach:"APRI COACH IA →",
+muscle:"Aumentare i muscoli",fat_loss:"Perdere grasso",
+strength:"Diventare più forte",fitness:"Migliorare la forma",
+maintain:"Mantenere il peso",gym:"Palestra",home:"Casa",both:"Entrambi"
+}
+};
+
+const valueTranslations = {
+es:{beginner:"Principiante",intermediate:"Intermedio",advanced:"Avanzado",
+male:"Hombre",female:"Mujer",prefer_not:"Prefiero no decirlo",
+anything:"Sin restricciones",vegetarian:"Vegetariano",vegan:"Vegano",
+halal:"Halal",sedentary:"Mayormente sentado",light:"Algo de caminata",
+active:"Activo",very_active:"Muy activo",under6:"Menos de 6 horas",
+"6to7":"6–7 horas","7to8":"7–8 horas",over8:"Más de 8 horas",
+"3months":"3 meses","6months":"6 meses","12months":"12 meses",flexible:"Flexible"},
+fr:{beginner:"Débutant",intermediate:"Intermédiaire",advanced:"Avancé",
+male:"Homme",female:"Femme",prefer_not:"Préfère ne pas répondre",
+anything:"Aucune restriction",vegetarian:"Végétarien",vegan:"Végétalien",
+halal:"Halal",sedentary:"Surtout assis",light:"Un peu de marche",
+active:"Actif",very_active:"Très actif",under6:"Moins de 6 heures",
+"6to7":"6–7 heures","7to8":"7–8 heures",over8:"Plus de 8 heures",
+"3months":"3 mois","6months":"6 mois","12months":"12 mois",flexible:"Flexible"},
+de:{beginner:"Anfänger",intermediate:"Mittelstufe",advanced:"Fortgeschritten",
+male:"Männlich",female:"Weiblich",prefer_not:"Keine Angabe",
+anything:"Keine Einschränkungen",vegetarian:"Vegetarisch",vegan:"Vegan",
+halal:"Halal",sedentary:"Meist sitzend",light:"Etwas Bewegung",
+active:"Aktiv",very_active:"Sehr aktiv",under6:"Unter 6 Stunden",
+"6to7":"6–7 Stunden","7to8":"7–8 Stunden",over8:"Über 8 Stunden",
+"3months":"3 Monate","6months":"6 Monate","12months":"12 Monate",flexible:"Flexibel"},
+tr:{beginner:"Başlangıç",intermediate:"Orta",advanced:"İleri",
+male:"Erkek",female:"Kadın",prefer_not:"Belirtmek istemiyorum",
+anything:"Kısıtlama yok",vegetarian:"Vejetaryen",vegan:"Vegan",
+halal:"Helal",sedentary:"Çoğunlukla oturuyorum",light:"Biraz yürüyorum",
+active:"Aktif",very_active:"Çok aktif",under6:"6 saatten az",
+"6to7":"6–7 saat","7to8":"7–8 saat",over8:"8 saatten fazla",
+"3months":"3 ay","6months":"6 ay","12months":"12 ay",flexible:"Esnek"},
+pt:{beginner:"Iniciante",intermediate:"Intermediário",advanced:"Avançado",
+male:"Masculino",female:"Feminino",prefer_not:"Prefiro não informar",
+anything:"Sem restrições",vegetarian:"Vegetariano",vegan:"Vegano",
+halal:"Halal",sedentary:"Principalmente sentado",light:"Alguma caminhada",
+active:"Ativo",very_active:"Muito ativo",under6:"Menos de 6 horas",
+"6to7":"6–7 horas","7to8":"7–8 horas",over8:"Mais de 8 horas",
+"3months":"3 meses","6months":"6 meses","12months":"12 meses",flexible:"Flexível"},
+ru:{beginner:"Начальный",intermediate:"Средний",advanced:"Продвинутый",
+male:"Мужской",female:"Женский",prefer_not:"Не указывать",
+anything:"Без ограничений",vegetarian:"Вегетарианство",vegan:"Веганство",
+halal:"Халяль",sedentary:"В основном сижу",light:"Немного хожу",
+active:"Активен",very_active:"Очень активен",under6:"Менее 6 часов",
+"6to7":"6–7 часов","7to8":"7–8 часов",over8:"Более 8 часов",
+"3months":"3 месяца","6months":"6 месяцев","12months":"12 месяцев",flexible:"Без срока"},
+it:{beginner:"Principiante",intermediate:"Intermedio",advanced:"Avanzato",
+male:"Maschio",female:"Femmina",prefer_not:"Preferisco non dirlo",
+anything:"Nessuna restrizione",vegetarian:"Vegetariano",vegan:"Vegano",
+halal:"Halal",sedentary:"Prevalentemente seduto",light:"Qualche passeggiata",
+active:"Attivo",very_active:"Molto attivo",under6:"Meno di 6 ore",
+"6to7":"6–7 ore","7to8":"7–8 ore",over8:"Più di 8 ore",
+"3months":"3 mesi","6months":"6 mesi","12months":"12 mesi",flexible:"Senza scadenza"}
+};
+
+for(const lang of Object.keys(valueTranslations)){
+  Object.assign(dashboardMessages[lang],valueTranslations[lang]);
+}
+
+let savedProfile = null;
+let currentUser = null;
+
+function currentLang(){
+  const lang = typeof getLanguage === "function"
+    ? getLanguage()
+    : localStorage.getItem("bodymode_language") || "en";
+  return dashboardMessages[lang] ? lang : "en";
+}
+
+function dt(key){
+  return dashboardMessages[currentLang()][key] ||
+         dashboardMessages.en[key] ||
+         key;
+}
+
+function displayValue(key,value){
+  if(value === null || value === undefined || value === "") return "—";
+  if(key === "weight" || key === "targetWeight") return value+" "+dt("kg");
+  if(key === "height") return value+" "+dt("cm");
+  if(key === "duration") return value+" "+dt("minutes");
+  if(key === "days" || key === "meals") return String(value);
+  return dt(String(value));
+}
+
+function addProfileItem(label,value){
+  const item = document.createElement("div");
+  item.className = "profile-item";
+
+  const small = document.createElement("small");
+  small.textContent = dt(label);
+
+  const strong = document.createElement("strong");
+  strong.textContent = displayValue(label,value);
+
+  item.append(small,strong);
+  $("profileDetails").appendChild(item);
+}
+
+function renderDashboard(){
+  $("profileHeading").textContent = dt("profileHeading");
+  $("goalHeading").textContent = dt("goalHeading");
+  $("aiCoachLink").textContent = dt("openCoach");
+
+  $("progressDescription").textContent = dt("progressUnavailable");
+  $("progressFill").style.width = "0%";
+
+  $("profileDetails").replaceChildren();
+
+  if(!savedProfile){
+    $("profileStatus").textContent = dt("profileMissing");
+    $("profileDescription").textContent = dt("profileMissingDescription");
+    $("editProfileBtn").textContent = dt("completeProfile");
+    $("goalDescription").textContent = dt("goalMissing");
+    $("targetHeading").textContent = "";
+    $("timelineDescription").textContent = "";
+    return;
+  }
+
+  $("profileStatus").textContent = dt("profileReady");
+  $("profileDescription").textContent = dt("profileDescription");
+  $("editProfileBtn").textContent = dt("editProfile");
+
+  const fields = [
+    "age","height","weight","sex","goal","location",
+    "experience","days","duration","diet","meals","activity","sleep"
+  ];
+
+  for(const key of fields){
+    if(savedProfile[key] !== undefined &&
+       savedProfile[key] !== null &&
+       savedProfile[key] !== ""){
+      addProfileItem(key,savedProfile[key]);
+    }
+  }
+
+  $("goalDescription").textContent =
+    savedProfile.goal
+      ? displayValue("goal",savedProfile.goal)
+      : dt("goalMissing");
+
+  $("targetHeading").textContent =
+    savedProfile.targetWeight
+      ? dt("target")+": "+displayValue("targetWeight",savedProfile.targetWeight)
+      : "";
+
+  $("timelineDescription").textContent =
+    savedProfile.timeline
+      ? dt("timeline")+": "+displayValue("timeline",savedProfile.timeline)
+      : "";
+}
+
+async function checkLogin(){
+  try{
+    if(typeof supabaseClient === "undefined"){
+      throw new Error("Supabase connection is not configured.");
+    }
+
+    const {data,error} = await supabaseClient.auth.getUser();
+
+    if(error || !data.user){
+      window.location.replace("login.html");
+      return;
+    }
+
+    currentUser = data.user;
+
+    $("userEmail").textContent =
+      currentUser.email || dt("loggedIn");
+
+    $("loading").style.display = "none";
+    $("dashboardContent").style.display = "block";
+    $("logoutBtn").style.display = "inline-block";
+
+    const result = await supabaseClient
+      .from("fitness_profiles")
+      .select("answers")
+      .eq("user_id",currentUser.id)
+      .maybeSingle();
+
+    if(result.error){
+      console.error("Profile loading error:",result.error);
+      $("message").textContent =
+        dt("profileError")+": "+result.error.message;
+    }else{
+      savedProfile = result.data?.answers || null;
+    }
+
+    renderDashboard();
+
+  }catch(error){
+    $("loading").textContent = dt("connectionError");
+    console.error("Dashboard error:",error);
+  }
+}
+
+$("logoutBtn").addEventListener("click",async event=>{
+  event.preventDefault();
+
+  $("logoutBtn").style.pointerEvents = "none";
+
+  const {error} = await supabaseClient.auth.signOut();
+
+  if(error){
+    $("message").textContent = error.message;
+    $("logoutBtn").style.pointerEvents = "";
+    return;
+  }
+
+  window.location.replace("login.html");
+});
+
+document.addEventListener("bodymode:languagechange",()=>{
+  if(currentUser) renderDashboard();
+});
+
+checkLogin();
+</script>
+
+</body>
+</html>
