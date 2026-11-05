@@ -1,0 +1,520 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>AI Coach | Body Mode</title>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    .ai-container {
+      max-width: 1250px;
+      margin: auto;
+      padding: 120px 25px 70px;
+    }
+
+    .ai-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .ai-header h1 {
+      font-size: clamp(35px, 5vw, 58px);
+      margin-bottom: 15px;
+    }
+
+    .ai-header h1 span {
+      color: #e8bc50;
+    }
+
+    .ai-header p {
+      color: #aaa;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .ai-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      margin-bottom: 45px;
+    }
+
+    .ai-card {
+      background: #151515;
+      border: 1px solid #333;
+      border-radius: 18px;
+      padding: 30px;
+      transition: 0.3s;
+    }
+
+    .ai-card:hover {
+      border-color: #e8bc50;
+      transform: translateY(-4px);
+    }
+
+    .ai-card .icon {
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+
+    .ai-card h3 {
+      font-size: 22px;
+      margin-bottom: 15px;
+    }
+
+    .ai-card p {
+      color: #aaa;
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .ai-card button {
+      background: #e8bc50;
+      color: #111;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    .ai-card button:hover {
+      background: #ffd76e;
+    }
+
+    .chat-section {
+      background: #151515;
+      border: 1px solid #333;
+      border-radius: 20px;
+      overflow: hidden;
+      max-width: 950px;
+      margin: auto;
+    }
+
+    .chat-header {
+      background: #1e1e1e;
+      padding: 25px;
+      border-bottom: 1px solid #333;
+    }
+
+    .chat-header h2 {
+      margin: 0 0 8px;
+      color: #e8bc50;
+    }
+
+    .chat-header p {
+      color: #aaa;
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .chat-messages {
+      height: 400px;
+      overflow-y: auto;
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 15px 20px;
+      border-radius: 14px;
+      line-height: 1.6;
+      font-size: 15px;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .bot-message {
+      background: #252525;
+      color: white;
+      align-self: flex-start;
+      border-bottom-left-radius: 3px;
+    }
+
+    .user-message {
+      background: #e8bc50;
+      color: #111;
+      align-self: flex-end;
+      border-bottom-right-radius: 3px;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 12px;
+      padding: 20px;
+      border-top: 1px solid #333;
+    }
+
+    .chat-input input {
+      flex: 1;
+      min-width: 0;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 10px;
+      padding: 15px;
+      color: white;
+      font-size: 15px;
+    }
+
+    .chat-input input:focus {
+      outline: none;
+      border-color: #e8bc50;
+    }
+
+    .chat-input button {
+      background: #e8bc50;
+      color: #111;
+      border: none;
+      border-radius: 10px;
+      padding: 15px 25px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .chat-input button:hover {
+      background: #ffd76e;
+    }
+
+    .demo-notice {
+      text-align: center;
+      color: #999;
+      font-size: 12px;
+      padding: 0 15px 18px;
+    }
+
+    .language-select {
+      background: #151515;
+      color: #e8bc50;
+      border: 1px solid #e8bc50;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      max-width: 155px;
+    }
+
+    .navbar nav {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    [dir="rtl"] .ai-card,
+    [dir="rtl"] .chat-header {
+      text-align: right;
+    }
+
+    @media (max-width: 900px) {
+      .ai-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .ai-container {
+        padding: 100px 15px 40px;
+      }
+
+      .chat-messages {
+        height: 350px;
+        padding: 15px;
+      }
+
+      .message {
+        max-width: 90%;
+      }
+
+      .chat-input {
+        padding: 12px;
+      }
+
+      .chat-input button {
+        padding: 12px;
+      }
+
+      .language-select {
+        max-width: 125px;
+        padding: 7px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <a href="index.html" class="logo">
+      ⚡ BODY<span>MODE</span>
+    </a>
+
+    <nav>
+      <a href="index.html" data-i18n="home">HOME</a>
+      <a href="index.html#courses" data-i18n="programs">PROGRAMS</a>
+      <a href="dashboard.html" data-i18n="dashboard">DASHBOARD</a>
+
+      <select
+        id="languageSelect"
+        class="language-select"
+        aria-label="Choose language"
+      ></select>
+    </nav>
+  </header>
+
+  <main class="ai-container">
+
+    <!-- HEADER -->
+    <section class="ai-header">
+      <h1 data-i18n="aiTitle">
+        YOUR PERSONAL AI COACH
+      </h1>
+
+      <p data-i18n="aiDescription">
+        Train smarter. Eat better. Track your progress.
+        Your fitness journey starts here.
+      </p>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="ai-grid">
+
+      <div class="ai-card">
+        <div class="icon">🏋️</div>
+
+        <h3 data-i18n="workoutPlanner">
+          Workout Planner
+        </h3>
+
+        <p data-i18n="workoutDesc">
+          Build a workout routine based on your goals,
+          experience, and available equipment.
+        </p>
+
+        <button
+          type="button"
+          onclick="askCoach('workout')"
+          data-i18n="createWorkout">
+          CREATE WORKOUT
+        </button>
+      </div>
+
+      <div class="ai-card">
+        <div class="icon">🥗</div>
+
+        <h3 data-i18n="nutritionCoach">
+          Nutrition Coach
+        </h3>
+
+        <p data-i18n="nutritionDesc">
+          Plan your meals, understand calories,
+          and learn about protein, carbs, and fats.
+        </p>
+
+        <button
+          type="button"
+          onclick="askCoach('nutrition')"
+          data-i18n="planMeals">
+          PLAN MY MEALS
+        </button>
+      </div>
+
+      <div class="ai-card">
+        <div class="icon">📈</div>
+
+        <h3 data-i18n="progressTracker">
+          Progress Tracker
+        </h3>
+
+        <p data-i18n="progressDesc">
+          Monitor your weight, fitness goals,
+          and transformation progress.
+        </p>
+
+        <button
+          type="button"
+          onclick="askCoach('progress')"
+          data-i18n="trackProgress">
+          TRACK PROGRESS
+        </button>
+      </div>
+
+    </section>
+
+    <!-- CHAT -->
+    <section class="chat-section">
+
+      <div class="chat-header">
+        <h2>⚡ BODY MODE AI</h2>
+
+        <p data-i18n="fitnessAssistant">
+          Your personal fitness assistant
+        </p>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div
+          class="message bot-message"
+          id="welcomeMessage"
+          data-i18n="chatWelcome">
+          Welcome to Body Mode!
+          I'm your fitness assistant.
+          What would you like to work on today?
+        </div>
+      </div>
+
+      <form class="chat-input" id="chatForm">
+
+        <input
+          type="text"
+          id="userInput"
+          placeholder="Ask about workouts, nutrition, goals..."
+          data-i18n-placeholder="chatPlaceholder"
+          autocomplete="off"
+          required
+        >
+
+        <button type="submit" data-i18n="send">
+          SEND
+        </button>
+
+      </form>
+
+      <p class="demo-notice" data-i18n="demoNotice">
+        Demo mode — real AI responses are not connected yet.
+      </p>
+
+    </section>
+
+  </main>
+
+  <!-- TRANSLATIONS -->
+  <script src="translations.js"></script>
+
+  <!-- CHAT LOGIC -->
+  <script>
+    const chatMessages = document.getElementById("chatMessages");
+    const userInput = document.getElementById("userInput");
+    const chatForm = document.getElementById("chatForm");
+
+    const coachQuestions = {
+      en: {
+        workout: "Help me create a workout plan",
+        nutrition: "Help me create a nutrition plan",
+        progress: "Help me track my progress"
+      },
+      ar: {
+        workout: "ساعدني أعمل برنامج تمارين",
+        nutrition: "ساعدني أعمل خطة تغذية",
+        progress: "ساعدني أتابع تقدمي"
+      },
+      he: {
+        workout: "עזור לי לבנות תוכנית אימונים",
+        nutrition: "עזור לי לבנות תוכנית תזונה",
+        progress: "עזור לי לעקוב אחר ההתקדמות שלי"
+      },
+      es: {
+        workout: "Ayúdame a crear un plan de entrenamiento",
+        nutrition: "Ayúdame a crear un plan de nutrición",
+        progress: "Ayúdame a seguir mi progreso"
+      },
+      fr: {
+        workout: "Aide-moi à créer un programme d'entraînement",
+        nutrition: "Aide-moi à créer un programme nutritionnel",
+        progress: "Aide-moi à suivre mes progrès"
+      },
+      de: {
+        workout: "Hilf mir, einen Trainingsplan zu erstellen",
+        nutrition: "Hilf mir, einen Ernährungsplan zu erstellen",
+        progress: "Hilf mir, meine Fortschritte zu verfolgen"
+      },
+      tr: {
+        workout: "Antrenman planı oluşturmama yardım et",
+        nutrition: "Beslenme planı oluşturmama yardım et",
+        progress: "İlerlememi takip etmeme yardım et"
+      },
+      pt: {
+        workout: "Ajude-me a criar um plano de treino",
+        nutrition: "Ajude-me a criar um plano alimentar",
+        progress: "Ajude-me a acompanhar meu progresso"
+      },
+      ru: {
+        workout: "Помоги мне составить план тренировок",
+        nutrition: "Помоги мне составить план питания",
+        progress: "Помоги мне отслеживать прогресс"
+      },
+      it: {
+        workout: "Aiutami a creare un piano di allenamento",
+        nutrition: "Aiutami a creare un piano alimentare",
+        progress: "Aiutami a monitorare i miei progressi"
+      }
+    };
+
+    function addMessage(text, type) {
+      const message = document.createElement("div");
+
+      message.className =
+        "message " +
+        (type === "user" ? "user-message" : "bot-message");
+
+      message.textContent = text;
+
+      chatMessages.appendChild(message);
+
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function askCoach(type) {
+      const lang = getLanguage();
+
+      const questions =
+        coachQuestions[lang] || coachQuestions.en;
+
+      userInput.value = questions[type] || "";
+      userInput.focus();
+
+      document.querySelector(".chat-section")
+        .scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+    }
+
+    chatForm.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const question = userInput.value.trim();
+
+      if (!question) return;
+
+      addMessage(question, "user");
+
+      userInput.value = "";
+
+      setTimeout(function() {
+        addMessage(t("demoReply"), "bot");
+      }, 500);
+    });
+  </script>
+
+</body>
+</html>

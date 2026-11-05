@@ -1,0 +1,385 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Dashboard - Body Mode</title>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      background: #0b0b0b;
+      color: white;
+    }
+
+    .dashboard {
+      min-height: 85vh;
+      padding: 80px 7%;
+    }
+
+    .dashboard-header {
+      text-align: center;
+      margin-bottom: 55px;
+    }
+
+    .dashboard-header h1 {
+      font-size: clamp(32px, 5vw, 55px);
+      letter-spacing: -2px;
+    }
+
+    .dashboard-header h1 span {
+      color: #e8bc50;
+    }
+
+    .dashboard-header p {
+      color: #aaa;
+      overflow-wrap: anywhere;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 25px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .dash-card {
+      background: #151515;
+      border: 1px solid #333;
+      border-radius: 16px;
+      padding: 35px;
+    }
+
+    .dash-card .icon {
+      font-size: 35px;
+      margin-bottom: 20px;
+    }
+
+    .dash-card h3 {
+      font-size: 22px;
+      margin-bottom: 15px;
+    }
+
+    .dash-card p {
+      color: #aaa;
+      line-height: 1.7;
+    }
+
+    .dash-card .btn {
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    .progress-bar {
+      height: 12px;
+      background: #333;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #e8bc50;
+    }
+
+    #loading {
+      text-align: center;
+      margin-top: 100px;
+      color: #e8bc50;
+      font-size: 20px;
+    }
+
+    #dashboardContent {
+      display: none;
+    }
+
+    #logoutBtn {
+      display: none;
+      color: #e8bc50;
+      cursor: pointer;
+    }
+
+    #message {
+      text-align: center;
+      color: #ff6666;
+      margin-top: 20px;
+    }
+
+    .language-select {
+      background: #151515;
+      color: #e8bc50;
+      border: 1px solid #e8bc50;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      max-width: 155px;
+    }
+
+    .navbar nav {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    [dir="rtl"] .dash-card {
+      text-align: right;
+    }
+
+    @media (max-width: 800px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .language-select {
+        max-width: 125px;
+        padding: 7px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+
+    <a href="index.html" class="logo">
+      ⚡ BODY<span>MODE</span>
+    </a>
+
+    <nav>
+      <a href="index.html" data-i18n="home">
+        Home
+      </a>
+
+      <a href="index.html#courses" data-i18n="programs">
+        Programs
+      </a>
+
+      <a href="#" id="logoutBtn" data-i18n="logout">
+        LOGOUT
+      </a>
+
+      <select
+        id="languageSelect"
+        class="language-select"
+        aria-label="Choose language"
+      ></select>
+    </nav>
+
+  </header>
+
+  <!-- LOADING -->
+  <div id="loading" data-i18n="checkingAccount">
+    Checking your account...
+  </div>
+
+  <!-- DASHBOARD -->
+  <main id="dashboardContent" class="dashboard">
+
+    <section class="dashboard-header">
+
+      <p class="eyebrow" data-i18n="personalSpace">
+        YOUR PERSONAL SPACE
+      </p>
+
+      <h1 data-i18n="myDashboard">
+        MY DASHBOARD
+      </h1>
+
+      <p id="userEmail"></p>
+
+    </section>
+
+    <section class="dashboard-grid">
+
+      <!-- COURSES -->
+      <div class="dash-card">
+
+        <div class="icon">📚</div>
+
+        <h3 data-i18n="myCourses">
+          My Courses
+        </h3>
+
+        <p data-i18n="noCourses">
+          No course purchased yet.
+        </p>
+
+        <a href="index.html#courses"
+           class="btn"
+           data-i18n="viewPrograms">
+          VIEW PROGRAMS →
+        </a>
+
+      </div>
+
+      <!-- PROGRESS -->
+      <div class="dash-card">
+
+        <div class="icon">📈</div>
+
+        <h3 data-i18n="myProgress">
+          My Progress
+        </h3>
+
+        <p>
+          0% <span data-i18n="completed">completed</span>
+        </p>
+
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+
+      </div>
+
+      <!-- AI COACH -->
+      <div class="dash-card">
+
+        <div class="icon">⚡</div>
+
+        <h3 data-i18n="aiCoach">
+          AI Coach
+        </h3>
+
+        <p data-i18n="coachComing">
+          Your personal fitness assistant is coming soon.
+        </p>
+
+        <a href="index.html#about"
+           class="btn"
+           data-i18n="learnMore">
+          LEARN MORE →
+        </a>
+
+      </div>
+
+    </section>
+
+    <p id="message"></p>
+
+  </main>
+
+  <!-- SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+
+  <!-- TRANSLATIONS -->
+  <script src="translations.js"></script>
+
+  <!-- DASHBOARD LOGIC -->
+  <script>
+    const loading = document.getElementById("loading");
+    const dashboard = document.getElementById("dashboardContent");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const dashboardMessages = {
+      en: {
+        loggedIn: "Logged in",
+        connectionError: "Connection error. Check Supabase configuration."
+      },
+      ar: {
+        loggedIn: "تم تسجيل الدخول",
+        connectionError: "خطأ في الاتصال. تحقق من إعدادات Supabase."
+      },
+      he: {
+        loggedIn: "מחובר",
+        connectionError: "שגיאת חיבור. בדקו את הגדרות Supabase."
+      },
+      es: {
+        loggedIn: "Sesión iniciada",
+        connectionError: "Error de conexión. Revisa la configuración de Supabase."
+      },
+      fr: {
+        loggedIn: "Connecté",
+        connectionError: "Erreur de connexion. Vérifiez la configuration de Supabase."
+      },
+      de: {
+        loggedIn: "Angemeldet",
+        connectionError: "Verbindungsfehler. Prüfe die Supabase-Konfiguration."
+      },
+      tr: {
+        loggedIn: "Giriş yapıldı",
+        connectionError: "Bağlantı hatası. Supabase ayarlarını kontrol et."
+      },
+      pt: {
+        loggedIn: "Conectado",
+        connectionError: "Erro de conexão. Verifique a configuração do Supabase."
+      },
+      ru: {
+        loggedIn: "Вы вошли",
+        connectionError: "Ошибка соединения. Проверьте настройки Supabase."
+      },
+      it: {
+        loggedIn: "Accesso effettuato",
+        connectionError: "Errore di connessione. Controlla la configurazione Supabase."
+      }
+    };
+
+    function dashboardText(key) {
+      const lang = getLanguage();
+
+      return dashboardMessages[lang]?.[key] ||
+             dashboardMessages.en[key];
+    }
+
+    async function checkLogin() {
+      try {
+        if (typeof supabaseClient === "undefined") {
+          throw new Error("Supabase connection is not configured.");
+        }
+
+        const { data, error } =
+          await supabaseClient.auth.getUser();
+
+        if (error || !data.user) {
+          window.location.replace("login.html");
+          return;
+        }
+
+        document.getElementById("userEmail").textContent =
+          data.user.email || dashboardText("loggedIn");
+
+        loading.style.display = "none";
+        dashboard.style.display = "block";
+        logoutBtn.style.display = "inline-block";
+
+      } catch (error) {
+        loading.textContent = dashboardText("connectionError");
+
+        console.error("Dashboard error:", error);
+      }
+    }
+
+    logoutBtn.addEventListener("click", async function(e) {
+      e.preventDefault();
+
+      logoutBtn.style.display = "none";
+
+      const { error } = await supabaseClient.auth.signOut();
+
+      if (error) {
+        document.getElementById("message").textContent =
+          error.message;
+
+        logoutBtn.style.display = "inline-block";
+        return;
+      }
+
+      window.location.replace("login.html");
+    });
+
+    checkLogin();
+  </script>
+
+</body>
+</html>

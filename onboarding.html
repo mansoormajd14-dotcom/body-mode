@@ -1,0 +1,931 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Profile | Body Mode</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b0b0b;color:white;font-family:Arial,sans-serif}
+.onboarding{min-height:100vh;padding:120px 18px 60px;display:flex;justify-content:center}
+.panel{width:100%;max-width:750px;background:#151515;border:1px solid #383838;border-radius:20px;padding:35px}
+.panel h1{font-size:32px}
+.panel h1 span{color:#e8bc50}
+.muted{color:#aaa;line-height:1.6}
+.progress{height:8px;border-radius:20px;background:#333;overflow:hidden;margin:26px 0 12px}
+#progressFill{height:100%;width:0;background:#e8bc50;transition:width .25s}
+.step-meta{color:#aaa;font-size:13px;text-align:end}
+.question{margin:23px 0}
+.question label{display:block;margin-bottom:10px;font-weight:600}
+.question input,.question select,.question textarea{
+width:100%;padding:14px;background:#222;border:1px solid #555;
+border-radius:9px;color:white;font-size:15px
+}
+.options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.option{border:1px solid #444;background:#202020;color:white;border-radius:10px;padding:14px;text-align:start;cursor:pointer}
+.option.active{border-color:#e8bc50;background:#332b19;color:#f4d27d}
+.actions{display:flex;gap:12px;margin-top:32px}
+.actions button{flex:1;border:1px solid #e8bc50;border-radius:9px;padding:15px;cursor:pointer;font-weight:800;background:#e8bc50;color:#111}
+.actions button.secondary{background:transparent;color:#e8bc50}
+.actions button:disabled{opacity:.5;cursor:not-allowed}
+#status{margin-top:16px;color:#e8bc50;overflow-wrap:anywhere}
+.summary{background:#222;padding:16px;border-radius:12px;line-height:1.8;overflow-wrap:anywhere}
+.language-select{background:#151515;color:#e8bc50;border:1px solid #e8bc50;border-radius:8px;padding:9px;max-width:155px}
+.navbar nav{display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+[dir="rtl"] .panel{text-align:right}
+@media(max-width:600px){
+.panel{padding:24px 18px}
+.options{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header class="navbar">
+<a href="index.html" class="logo">⚡ BODY<span>MODE</span></a>
+<nav>
+<a href="dashboard.html" data-i18n="dashboard">Dashboard</a>
+<select id="languageSelect" class="language-select" aria-label="Language"></select>
+</nav>
+</header>
+
+<main class="onboarding">
+<section class="panel">
+
+<p id="profileEyebrow" style="color:#e8bc50">
+BUILD YOUR PERSONAL PROFILE
+</p>
+
+<h1>
+<span id="profileTitle">YOUR BODY.</span>
+<span id="profileTitleGold">YOUR PLAN.</span>
+</h1>
+
+<p class="muted" id="profileIntro">
+Answer a few questions so Body Mode can suggest a plan that fits your life.
+</p>
+
+<div class="progress">
+<div id="progressFill"></div>
+</div>
+
+<div class="step-meta" id="stepMeta"></div>
+
+<form id="wizard" novalidate>
+<div id="questions"></div>
+
+<div class="actions">
+<button type="button" class="secondary" id="backBtn">
+<span id="backText">BACK</span>
+</button>
+
+<button type="submit" id="nextBtn">CONTINUE →</button>
+</div>
+</form>
+
+<p id="status" role="status"></p>
+
+</section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="translations.js"></script>
+
+<script>
+const languageData = {
+en: {
+eyebrow:"BUILD YOUR PERSONAL PROFILE",title1:"YOUR BODY.",title2:"YOUR PLAN.",
+intro:"Answer a few questions so Body Mode can suggest a plan that fits your life.",
+about:"About You",goalStage:"Your Goal",trainingStage:"Training",nutritionStage:"Nutrition",
+lifestyleStage:"Lifestyle & Safety",reviewStage:"Review Your Answers",
+age:"Age",height:"Height (cm)",weight:"Current Weight (kg)",sex:"Sex (optional)",
+male:"Male",female:"Female",preferNot:"Prefer not to say",
+goal:"Main Goal",muscle:"Build Muscle",fatLoss:"Lose Fat",strength:"Get Stronger",
+fitness:"Improve Fitness",maintain:"Maintain Weight",targetWeight:"Target Weight (kg)",
+timeline:"Goal Timeline",threeMonths:"3 Months",sixMonths:"6 Months",
+twelveMonths:"12 Months",flexible:"No Fixed Deadline",
+location:"Training Location",gym:"Gym",home:"Home",both:"Both",
+experience:"Experience Level",beginner:"Beginner",intermediate:"Intermediate",advanced:"Advanced",
+days:"Training Days Per Week",daysUnit:"Days",duration:"Time Per Session",minutes:"Minutes",
+equipment:"Home Equipment",none:"No Equipment",dumbbells:"Dumbbells",
+bands:"Resistance Bands",full:"Full Home Setup",
+diet:"Eating Preferences",anything:"No Restrictions",vegetarian:"Vegetarian",
+vegan:"Vegan",halal:"Halal",meals:"Meals Per Day",mealsUnit:"Meals",
+cooking:"Cooking Time",quick:"Under 15 Minutes",medium:"15–30 Minutes",long:"30+ Minutes",
+allergies:"Food Allergies",foodPreferences:"Foods You Like or Dislike",
+activity:"Daily Activity",sedentary:"Mostly Sitting",light:"Some Walking",
+active:"Active Most of the Day",veryActive:"Very Active",
+sleep:"Average Sleep",under6:"Under 6 Hours",sixTo7:"6–7 Hours",
+sevenTo8:"7–8 Hours",over8:"Over 8 Hours",
+obstacle:"What's Holding You Back?",time:"Not Enough Time",
+nutritionObstacle:"Nutrition",consistency:"Consistency",knowledge:"Lack of Knowledge",
+limitations:"Injuries or Physical Limitations",
+reviewIntro:"Review your information before saving.",
+choose:"Choose one",optional:"optional",step:"Step",of:"of",
+back:"BACK",next:"CONTINUE →",save:"SAVE MY PROFILE →",
+requiredError:"Please answer all required questions.",
+measureError:"Please check your age, height and weight.",
+loginError:"Please log in before saving your profile.",
+saving:"Saving your profile...",saveError:"Could not save:",
+checking:"Checking your account..."
+},
+ar: {
+eyebrow:"أنشئ ملفك الشخصي",title1:"جسمك.",title2:"خطتك.",
+intro:"جاوب على بعض الأسئلة حتى يقترح Body Mode خطة تناسب حياتك.",
+about:"معلومات عنك",goalStage:"هدفك",trainingStage:"التمارين",nutritionStage:"التغذية",
+lifestyleStage:"نمط الحياة والسلامة",reviewStage:"مراجعة إجاباتك",
+age:"العمر",height:"الطول (سم)",weight:"الوزن الحالي (كغم)",sex:"الجنس (اختياري)",
+male:"ذكر",female:"أنثى",preferNot:"أفضل عدم الإجابة",
+goal:"الهدف الرئيسي",muscle:"بناء العضلات",fatLoss:"خسارة الدهون",strength:"زيادة القوة",
+fitness:"تحسين اللياقة",maintain:"الحفاظ على الوزن",targetWeight:"الوزن المستهدف (كغم)",
+timeline:"المدة لتحقيق الهدف",threeMonths:"3 أشهر",sixMonths:"6 أشهر",
+twelveMonths:"12 شهر",flexible:"بدون موعد محدد",
+location:"مكان التمرين",gym:"النادي الرياضي",home:"البيت",both:"الاثنان",
+experience:"مستوى الخبرة",beginner:"مبتدئ",intermediate:"متوسط",advanced:"متقدم",
+days:"أيام التمرين بالأسبوع",daysUnit:"أيام",duration:"مدة الحصة",minutes:"دقيقة",
+equipment:"معدات البيت",none:"بدون معدات",dumbbells:"دمبلز",
+bands:"أشرطة مقاومة",full:"معدات منزلية كاملة",
+diet:"النظام الغذائي",anything:"بدون قيود",vegetarian:"نباتي",
+vegan:"نباتي بالكامل",halal:"حلال",meals:"الوجبات يوميًا",mealsUnit:"وجبات",
+cooking:"وقت الطبخ",quick:"أقل من 15 دقيقة",medium:"15–30 دقيقة",long:"أكثر من 30 دقيقة",
+allergies:"حساسية الطعام",foodPreferences:"أطعمة بتحبها أو ما بتحبها",
+activity:"النشاط اليومي",sedentary:"جلوس معظم اليوم",light:"مشي قليل",
+active:"نشط معظم اليوم",veryActive:"نشط جدًا",
+sleep:"معدل النوم",under6:"أقل من 6 ساعات",sixTo7:"6–7 ساعات",
+sevenTo8:"7–8 ساعات",over8:"أكثر من 8 ساعات",
+obstacle:"شو اللي بعيق تقدمك؟",time:"ما عندي وقت كافي",
+nutritionObstacle:"التغذية",consistency:"الاستمرارية",knowledge:"قلة المعرفة",
+limitations:"إصابات أو قيود جسدية",
+reviewIntro:"راجع معلوماتك قبل الحفظ.",
+choose:"اختار",optional:"اختياري",step:"المرحلة",of:"من",
+back:"رجوع",next:"متابعة ←",save:"احفظ ملفي ←",
+requiredError:"جاوب على جميع الأسئلة المطلوبة.",
+measureError:"تأكد من العمر والطول والوزن.",
+loginError:"سجّل دخولك قبل حفظ الملف.",
+saving:"جاري حفظ ملفك...",saveError:"تعذّر الحفظ:",
+checking:"جاري فحص حسابك..."
+},
+he: {
+eyebrow:"בניית הפרופיל האישי",title1:"הגוף שלך.",title2:"התוכנית שלך.",
+intro:"ענו על כמה שאלות כדי ש-Body Mode יוכל להציע תוכנית שמתאימה לכם.",
+about:"עליך",goalStage:"המטרה שלך",trainingStage:"אימונים",nutritionStage:"תזונה",
+lifestyleStage:"אורח חיים ובטיחות",reviewStage:"בדיקת התשובות",
+age:"גיל",height:"גובה (ס״מ)",weight:"משקל נוכחי (ק״ג)",sex:"מין (לא חובה)",
+male:"זכר",female:"נקבה",preferNot:"מעדיף לא לציין",
+goal:"מטרה עיקרית",muscle:"בניית שרירים",fatLoss:"ירידה בשומן",strength:"חיזוק כוח",
+fitness:"שיפור הכושר",maintain:"שמירה על משקל",targetWeight:"משקל יעד (ק״ג)",
+timeline:"זמן להשגת המטרה",threeMonths:"3 חודשים",sixMonths:"6 חודשים",
+twelveMonths:"12 חודשים",flexible:"ללא מועד קבוע",
+location:"מקום האימון",gym:"חדר כושר",home:"בית",both:"שניהם",
+experience:"רמת ניסיון",beginner:"מתחיל",intermediate:"בינוני",advanced:"מתקדם",
+days:"ימי אימון בשבוע",daysUnit:"ימים",duration:"משך אימון",minutes:"דקות",
+equipment:"ציוד בבית",none:"ללא ציוד",dumbbells:"משקולות יד",
+bands:"גומיות התנגדות",full:"ציוד ביתי מלא",
+diet:"העדפות תזונה",anything:"ללא הגבלות",vegetarian:"צמחוני",
+vegan:"טבעוני",halal:"חלאל",meals:"ארוחות ביום",mealsUnit:"ארוחות",
+cooking:"זמן בישול",quick:"פחות מ-15 דקות",medium:"15–30 דקות",long:"מעל 30 דקות",
+allergies:"אלרגיות למזון",foodPreferences:"מאכלים שאוהבים או לא אוהבים",
+activity:"פעילות יומית",sedentary:"בעיקר ישיבה",light:"מעט הליכה",
+active:"פעיל רוב היום",veryActive:"פעיל מאוד",
+sleep:"שינה ממוצעת",under6:"פחות מ-6 שעות",sixTo7:"6–7 שעות",
+sevenTo8:"7–8 שעות",over8:"מעל 8 שעות",
+obstacle:"מה מעכב אותך?",time:"חוסר זמן",nutritionObstacle:"תזונה",
+consistency:"התמדה",knowledge:"חוסר ידע",
+limitations:"פציעות או מגבלות גופניות",
+reviewIntro:"בדקו את הפרטים לפני השמירה.",
+choose:"בחרו",optional:"לא חובה",step:"שלב",of:"מתוך",
+back:"חזרה",next:"המשך ←",save:"שמירת הפרופיל ←",
+requiredError:"יש לענות על כל שאלות החובה.",
+measureError:"יש לבדוק גיל, גובה ומשקל.",
+loginError:"יש להתחבר לפני השמירה.",
+saving:"שומר את הפרופיל...",saveError:"השמירה נכשלה:",
+checking:"בודק את החשבון..."
+}
+};
+
+const extraLanguages = {
+es:{
+eyebrow:"CREA TU PERFIL PERSONAL",title1:"TU CUERPO.",title2:"TU PLAN.",
+intro:"Responde algunas preguntas para recibir una propuesta adaptada a ti.",
+about:"Sobre ti",goalStage:"Tu objetivo",trainingStage:"Entrenamiento",nutritionStage:"Nutrición",
+lifestyleStage:"Estilo de vida y seguridad",reviewStage:"Revisa tus respuestas",
+age:"Edad",height:"Altura (cm)",weight:"Peso actual (kg)",sex:"Sexo (opcional)",
+male:"Hombre",female:"Mujer",preferNot:"Prefiero no decirlo",
+goal:"Objetivo principal",muscle:"Ganar músculo",fatLoss:"Perder grasa",
+strength:"Ganar fuerza",fitness:"Mejorar condición física",maintain:"Mantener peso",
+targetWeight:"Peso objetivo (kg)",timeline:"Plazo del objetivo",
+threeMonths:"3 meses",sixMonths:"6 meses",twelveMonths:"12 meses",flexible:"Sin fecha fija",
+location:"Lugar de entrenamiento",gym:"Gimnasio",home:"Casa",both:"Ambos",
+experience:"Nivel de experiencia",beginner:"Principiante",intermediate:"Intermedio",advanced:"Avanzado",
+days:"Días de entrenamiento por semana",daysUnit:"días",duration:"Duración por sesión",minutes:"minutos",
+equipment:"Equipo en casa",none:"Sin equipo",dumbbells:"Mancuernas",bands:"Bandas de resistencia",full:"Equipo completo",
+diet:"Preferencias alimentarias",anything:"Sin restricciones",vegetarian:"Vegetariano",vegan:"Vegano",halal:"Halal",
+meals:"Comidas al día",mealsUnit:"comidas",cooking:"Tiempo para cocinar",
+quick:"Menos de 15 minutos",medium:"15–30 minutos",long:"Más de 30 minutos",
+allergies:"Alergias alimentarias",foodPreferences:"Alimentos que te gustan o no",
+activity:"Actividad diaria",sedentary:"Mayormente sentado",light:"Algo de caminata",
+active:"Activo casi todo el día",veryActive:"Muy activo",
+sleep:"Sueño promedio",under6:"Menos de 6 horas",sixTo7:"6–7 horas",sevenTo8:"7–8 horas",over8:"Más de 8 horas",
+obstacle:"¿Qué te frena?",time:"Falta de tiempo",nutritionObstacle:"Nutrición",
+consistency:"Constancia",knowledge:"Falta de conocimientos",
+limitations:"Lesiones o limitaciones físicas",reviewIntro:"Revisa tus datos antes de guardar.",
+choose:"Elige uno",optional:"opcional",step:"Paso",of:"de",
+back:"ATRÁS",next:"CONTINUAR →",save:"GUARDAR PERFIL →",
+requiredError:"Responde todas las preguntas obligatorias.",
+measureError:"Comprueba edad, altura y peso.",
+loginError:"Inicia sesión antes de guardar.",
+saving:"Guardando perfil...",saveError:"No se pudo guardar:",
+checking:"Comprobando tu cuenta..."
+},
+fr:{
+eyebrow:"CRÉEZ VOTRE PROFIL",title1:"VOTRE CORPS.",title2:"VOTRE PLAN.",
+intro:"Répondez à quelques questions pour obtenir une proposition adaptée.",
+about:"À propos de vous",goalStage:"Votre objectif",trainingStage:"Entraînement",nutritionStage:"Nutrition",
+lifestyleStage:"Mode de vie et sécurité",reviewStage:"Vérifiez vos réponses",
+age:"Âge",height:"Taille (cm)",weight:"Poids actuel (kg)",sex:"Sexe (facultatif)",
+male:"Homme",female:"Femme",preferNot:"Préfère ne pas répondre",
+goal:"Objectif principal",muscle:"Prendre du muscle",fatLoss:"Perdre de la graisse",
+strength:"Gagner en force",fitness:"Améliorer la forme",maintain:"Maintenir le poids",
+targetWeight:"Poids cible (kg)",timeline:"Délai de l'objectif",
+threeMonths:"3 mois",sixMonths:"6 mois",twelveMonths:"12 mois",flexible:"Sans date fixe",
+location:"Lieu d'entraînement",gym:"Salle de sport",home:"Maison",both:"Les deux",
+experience:"Niveau d'expérience",beginner:"Débutant",intermediate:"Intermédiaire",advanced:"Avancé",
+days:"Jours d'entraînement par semaine",daysUnit:"jours",duration:"Durée par séance",minutes:"minutes",
+equipment:"Équipement à domicile",none:"Aucun équipement",dumbbells:"Haltères",
+bands:"Bandes de résistance",full:"Équipement complet",
+diet:"Préférences alimentaires",anything:"Aucune restriction",vegetarian:"Végétarien",
+vegan:"Végétalien",halal:"Halal",meals:"Repas par jour",mealsUnit:"repas",
+cooking:"Temps de cuisine",quick:"Moins de 15 minutes",medium:"15–30 minutes",long:"Plus de 30 minutes",
+allergies:"Allergies alimentaires",foodPreferences:"Aliments aimés ou non",
+activity:"Activité quotidienne",sedentary:"Surtout assis",light:"Un peu de marche",
+active:"Actif presque toute la journée",veryActive:"Très actif",
+sleep:"Sommeil moyen",under6:"Moins de 6 heures",sixTo7:"6–7 heures",sevenTo8:"7–8 heures",over8:"Plus de 8 heures",
+obstacle:"Qu'est-ce qui vous freine ?",time:"Manque de temps",nutritionObstacle:"Nutrition",
+consistency:"Régularité",knowledge:"Manque de connaissances",
+limitations:"Blessures ou limitations physiques",reviewIntro:"Vérifiez vos informations avant d'enregistrer.",
+choose:"Choisir",optional:"facultatif",step:"Étape",of:"sur",
+back:"RETOUR",next:"CONTINUER →",save:"ENREGISTRER →",
+requiredError:"Répondez à toutes les questions obligatoires.",
+measureError:"Vérifiez votre âge, taille et poids.",
+loginError:"Connectez-vous avant d'enregistrer.",
+saving:"Enregistrement...",saveError:"Échec de l'enregistrement :",
+checking:"Vérification du compte..."
+},
+de:{
+eyebrow:"ERSTELLE DEIN PROFIL",title1:"DEIN KÖRPER.",title2:"DEIN PLAN.",
+intro:"Beantworte einige Fragen für einen passenden Planvorschlag.",
+about:"Über dich",goalStage:"Dein Ziel",trainingStage:"Training",nutritionStage:"Ernährung",
+lifestyleStage:"Lebensstil und Sicherheit",reviewStage:"Antworten prüfen",
+age:"Alter",height:"Größe (cm)",weight:"Aktuelles Gewicht (kg)",sex:"Geschlecht (optional)",
+male:"Männlich",female:"Weiblich",preferNot:"Keine Angabe",
+goal:"Hauptziel",muscle:"Muskeln aufbauen",fatLoss:"Fett verlieren",
+strength:"Stärker werden",fitness:"Fitness verbessern",maintain:"Gewicht halten",
+targetWeight:"Zielgewicht (kg)",timeline:"Zeitrahmen",
+threeMonths:"3 Monate",sixMonths:"6 Monate",twelveMonths:"12 Monate",flexible:"Keine feste Frist",
+location:"Trainingsort",gym:"Fitnessstudio",home:"Zuhause",both:"Beides",
+experience:"Erfahrung",beginner:"Anfänger",intermediate:"Mittelstufe",advanced:"Fortgeschritten",
+days:"Trainingstage pro Woche",daysUnit:"Tage",duration:"Dauer pro Einheit",minutes:"Minuten",
+equipment:"Heimausrüstung",none:"Keine Ausrüstung",dumbbells:"Kurzhanteln",
+bands:"Widerstandsbänder",full:"Vollständige Ausstattung",
+diet:"Ernährungspräferenzen",anything:"Keine Einschränkungen",vegetarian:"Vegetarisch",
+vegan:"Vegan",halal:"Halal",meals:"Mahlzeiten pro Tag",mealsUnit:"Mahlzeiten",
+cooking:"Kochzeit",quick:"Unter 15 Minuten",medium:"15–30 Minuten",long:"Über 30 Minuten",
+allergies:"Lebensmittelallergien",foodPreferences:"Lebensmittel, die du magst oder nicht",
+activity:"Tägliche Aktivität",sedentary:"Meist sitzend",light:"Etwas Bewegung",
+active:"Meist aktiv",veryActive:"Sehr aktiv",
+sleep:"Durchschnittlicher Schlaf",under6:"Unter 6 Stunden",sixTo7:"6–7 Stunden",
+sevenTo8:"7–8 Stunden",over8:"Über 8 Stunden",
+obstacle:"Was hält dich zurück?",time:"Zu wenig Zeit",nutritionObstacle:"Ernährung",
+consistency:"Regelmäßigkeit",knowledge:"Fehlendes Wissen",
+limitations:"Verletzungen oder körperliche Einschränkungen",
+reviewIntro:"Überprüfe deine Angaben vor dem Speichern.",
+choose:"Bitte wählen",optional:"optional",step:"Schritt",of:"von",
+back:"ZURÜCK",next:"WEITER →",save:"PROFIL SPEICHERN →",
+requiredError:"Bitte alle Pflichtfragen beantworten.",
+measureError:"Bitte Alter, Größe und Gewicht prüfen.",
+loginError:"Bitte vor dem Speichern anmelden.",
+saving:"Profil wird gespeichert...",saveError:"Speichern fehlgeschlagen:",
+checking:"Konto wird geprüft..."
+},
+tr:{
+eyebrow:"KİŞİSEL PROFİLİNİ OLUŞTUR",title1:"VÜCUDUN.",title2:"PLANIN.",
+intro:"Sana uygun bir plan önerebilmemiz için birkaç soruyu yanıtla.",
+about:"Hakkında",goalStage:"Hedefin",trainingStage:"Antrenman",nutritionStage:"Beslenme",
+lifestyleStage:"Yaşam Tarzı ve Güvenlik",reviewStage:"Yanıtlarını Kontrol Et",
+age:"Yaş",height:"Boy (cm)",weight:"Mevcut kilo (kg)",sex:"Cinsiyet (isteğe bağlı)",
+male:"Erkek",female:"Kadın",preferNot:"Belirtmek istemiyorum",
+goal:"Ana hedef",muscle:"Kas geliştirmek",fatLoss:"Yağ kaybetmek",
+strength:"Güçlenmek",fitness:"Kondisyonu geliştirmek",maintain:"Kiloyu korumak",
+targetWeight:"Hedef kilo (kg)",timeline:"Hedef süresi",
+threeMonths:"3 ay",sixMonths:"6 ay",twelveMonths:"12 ay",flexible:"Sabit süre yok",
+location:"Antrenman yeri",gym:"Spor salonu",home:"Ev",both:"Her ikisi",
+experience:"Deneyim seviyesi",beginner:"Başlangıç",intermediate:"Orta",advanced:"İleri",
+days:"Haftalık antrenman günü",daysUnit:"gün",duration:"Seans süresi",minutes:"dakika",
+equipment:"Ev ekipmanları",none:"Ekipman yok",dumbbells:"Dambıl",
+bands:"Direnç bandı",full:"Tam ekipman",
+diet:"Beslenme tercihleri",anything:"Kısıtlama yok",vegetarian:"Vejetaryen",
+vegan:"Vegan",halal:"Helal",meals:"Günlük öğün",mealsUnit:"öğün",
+cooking:"Yemek hazırlama süresi",quick:"15 dakikadan az",medium:"15–30 dakika",long:"30+ dakika",
+allergies:"Gıda alerjileri",foodPreferences:"Sevdiğin veya sevmediğin yiyecekler",
+activity:"Günlük aktivite",sedentary:"Çoğunlukla oturuyorum",light:"Biraz yürüyorum",
+active:"Günün çoğunda aktifim",veryActive:"Çok aktifim",
+sleep:"Ortalama uyku",under6:"6 saatten az",sixTo7:"6–7 saat",
+sevenTo8:"7–8 saat",over8:"8 saatten fazla",
+obstacle:"Seni ne engelliyor?",time:"Zaman eksikliği",nutritionObstacle:"Beslenme",
+consistency:"Düzen",knowledge:"Bilgi eksikliği",
+limitations:"Sakatlıklar veya fiziksel kısıtlamalar",
+reviewIntro:"Kaydetmeden önce bilgilerini kontrol et.",
+choose:"Seç",optional:"isteğe bağlı",step:"Adım",of:"/",
+back:"GERİ",next:"DEVAM →",save:"PROFİLİ KAYDET →",
+requiredError:"Tüm zorunlu soruları yanıtla.",
+measureError:"Yaş, boy ve kilonu kontrol et.",
+loginError:"Kaydetmeden önce giriş yap.",
+saving:"Profil kaydediliyor...",saveError:"Kaydedilemedi:",
+checking:"Hesabın kontrol ediliyor..."
+},
+pt:{
+eyebrow:"CRIE SEU PERFIL",title1:"SEU CORPO.",title2:"SEU PLANO.",
+intro:"Responda algumas perguntas para receber uma sugestão adequada.",
+about:"Sobre você",goalStage:"Seu objetivo",trainingStage:"Treino",nutritionStage:"Nutrição",
+lifestyleStage:"Estilo de vida e segurança",reviewStage:"Revise suas respostas",
+age:"Idade",height:"Altura (cm)",weight:"Peso atual (kg)",sex:"Sexo (opcional)",
+male:"Masculino",female:"Feminino",preferNot:"Prefiro não informar",
+goal:"Objetivo principal",muscle:"Ganhar músculos",fatLoss:"Perder gordura",
+strength:"Ganhar força",fitness:"Melhorar condicionamento",maintain:"Manter peso",
+targetWeight:"Peso desejado (kg)",timeline:"Prazo do objetivo",
+threeMonths:"3 meses",sixMonths:"6 meses",twelveMonths:"12 meses",flexible:"Sem prazo fixo",
+location:"Local de treino",gym:"Academia",home:"Casa",both:"Ambos",
+experience:"Nível de experiência",beginner:"Iniciante",intermediate:"Intermediário",advanced:"Avançado",
+days:"Dias de treino por semana",daysUnit:"dias",duration:"Duração por sessão",minutes:"minutos",
+equipment:"Equipamentos em casa",none:"Sem equipamentos",dumbbells:"Halteres",
+bands:"Faixas de resistência",full:"Equipamento completo",
+diet:"Preferências alimentares",anything:"Sem restrições",vegetarian:"Vegetariano",
+vegan:"Vegano",halal:"Halal",meals:"Refeições por dia",mealsUnit:"refeições",
+cooking:"Tempo de preparo",quick:"Menos de 15 minutos",medium:"15–30 minutos",long:"Mais de 30 minutos",
+allergies:"Alergias alimentares",foodPreferences:"Alimentos de que gosta ou não",
+activity:"Atividade diária",sedentary:"Principalmente sentado",light:"Alguma caminhada",
+active:"Ativo quase o dia todo",veryActive:"Muito ativo",
+sleep:"Sono médio",under6:"Menos de 6 horas",sixTo7:"6–7 horas",
+sevenTo8:"7–8 horas",over8:"Mais de 8 horas",
+obstacle:"O que impede seu progresso?",time:"Falta de tempo",nutritionObstacle:"Nutrição",
+consistency:"Consistência",knowledge:"Falta de conhecimento",
+limitations:"Lesões ou limitações físicas",
+reviewIntro:"Revise suas informações antes de salvar.",
+choose:"Escolha",optional:"opcional",step:"Etapa",of:"de",
+back:"VOLTAR",next:"CONTINUAR →",save:"SALVAR PERFIL →",
+requiredError:"Responda todas as perguntas obrigatórias.",
+measureError:"Verifique idade, altura e peso.",
+loginError:"Entre na conta antes de salvar.",
+saving:"Salvando perfil...",saveError:"Não foi possível salvar:",
+checking:"Verificando sua conta..."
+},
+ru:{
+eyebrow:"СОЗДАЙТЕ СВОЙ ПРОФИЛЬ",title1:"ВАШЕ ТЕЛО.",title2:"ВАШ ПЛАН.",
+intro:"Ответьте на несколько вопросов для подбора подходящего плана.",
+about:"О вас",goalStage:"Ваша цель",trainingStage:"Тренировки",nutritionStage:"Питание",
+lifestyleStage:"Образ жизни и безопасность",reviewStage:"Проверьте ответы",
+age:"Возраст",height:"Рост (см)",weight:"Текущий вес (кг)",sex:"Пол (необязательно)",
+male:"Мужской",female:"Женский",preferNot:"Не указывать",
+goal:"Главная цель",muscle:"Набрать мышцы",fatLoss:"Сбросить жир",
+strength:"Стать сильнее",fitness:"Улучшить форму",maintain:"Поддерживать вес",
+targetWeight:"Желаемый вес (кг)",timeline:"Срок достижения цели",
+threeMonths:"3 месяца",sixMonths:"6 месяцев",twelveMonths:"12 месяцев",flexible:"Без срока",
+location:"Место тренировок",gym:"Спортзал",home:"Дом",both:"Оба варианта",
+experience:"Уровень подготовки",beginner:"Начальный",intermediate:"Средний",advanced:"Продвинутый",
+days:"Тренировок в неделю",daysUnit:"дней",duration:"Длительность занятия",minutes:"минут",
+equipment:"Домашнее оборудование",none:"Без оборудования",dumbbells:"Гантели",
+bands:"Резинки",full:"Полный комплект",
+diet:"Предпочтения в питании",anything:"Без ограничений",vegetarian:"Вегетарианство",
+vegan:"Веганство",halal:"Халяль",meals:"Приёмов пищи в день",mealsUnit:"приёмов пищи",
+cooking:"Время готовки",quick:"Менее 15 минут",medium:"15–30 минут",long:"Более 30 минут",
+allergies:"Пищевая аллергия",foodPreferences:"Любимые и нелюбимые продукты",
+activity:"Ежедневная активность",sedentary:"В основном сижу",light:"Немного хожу",
+active:"Активен большую часть дня",veryActive:"Очень активен",
+sleep:"Средний сон",under6:"Менее 6 часов",sixTo7:"6–7 часов",
+sevenTo8:"7–8 часов",over8:"Более 8 часов",
+obstacle:"Что вам мешает?",time:"Нехватка времени",nutritionObstacle:"Питание",
+consistency:"Регулярность",knowledge:"Недостаток знаний",
+limitations:"Травмы или физические ограничения",
+reviewIntro:"Проверьте данные перед сохранением.",
+choose:"Выберите",optional:"необязательно",step:"Шаг",of:"из",
+back:"НАЗАД",next:"ДАЛЕЕ →",save:"СОХРАНИТЬ ПРОФИЛЬ →",
+requiredError:"Ответьте на все обязательные вопросы.",
+measureError:"Проверьте возраст, рост и вес.",
+loginError:"Войдите перед сохранением.",
+saving:"Сохранение профиля...",saveError:"Не удалось сохранить:",
+checking:"Проверка аккаунта..."
+},
+it:{
+eyebrow:"CREA IL TUO PROFILO",title1:"IL TUO CORPO.",title2:"IL TUO PIANO.",
+intro:"Rispondi ad alcune domande per ricevere una proposta adatta a te.",
+about:"Su di te",goalStage:"Il tuo obiettivo",trainingStage:"Allenamento",nutritionStage:"Alimentazione",
+lifestyleStage:"Stile di vita e sicurezza",reviewStage:"Controlla le risposte",
+age:"Età",height:"Altezza (cm)",weight:"Peso attuale (kg)",sex:"Sesso (facoltativo)",
+male:"Maschio",female:"Femmina",preferNot:"Preferisco non dirlo",
+goal:"Obiettivo principale",muscle:"Aumentare i muscoli",fatLoss:"Perdere grasso",
+strength:"Diventare più forte",fitness:"Migliorare la forma",maintain:"Mantenere il peso",
+targetWeight:"Peso obiettivo (kg)",timeline:"Tempo per l'obiettivo",
+threeMonths:"3 mesi",sixMonths:"6 mesi",twelveMonths:"12 mesi",flexible:"Nessuna scadenza",
+location:"Luogo di allenamento",gym:"Palestra",home:"Casa",both:"Entrambi",
+experience:"Livello di esperienza",beginner:"Principiante",intermediate:"Intermedio",advanced:"Avanzato",
+days:"Giorni di allenamento a settimana",daysUnit:"giorni",duration:"Durata della sessione",minutes:"minuti",
+equipment:"Attrezzatura a casa",none:"Nessuna attrezzatura",dumbbells:"Manubri",
+bands:"Elastici",full:"Attrezzatura completa",
+diet:"Preferenze alimentari",anything:"Nessuna restrizione",vegetarian:"Vegetariano",
+vegan:"Vegano",halal:"Halal",meals:"Pasti al giorno",mealsUnit:"pasti",
+cooking:"Tempo per cucinare",quick:"Meno di 15 minuti",medium:"15–30 minuti",long:"Più di 30 minuti",
+allergies:"Allergie alimentari",foodPreferences:"Cibi che ti piacciono o meno",
+activity:"Attività quotidiana",sedentary:"Prevalentemente seduto",light:"Qualche passeggiata",
+active:"Attivo quasi tutto il giorno",veryActive:"Molto attivo",
+sleep:"Sonno medio",under6:"Meno di 6 ore",sixTo7:"6–7 ore",
+sevenTo8:"7–8 ore",over8:"Più di 8 ore",
+obstacle:"Cosa ti ostacola?",time:"Poco tempo",nutritionObstacle:"Alimentazione",
+consistency:"Costanza",knowledge:"Poca conoscenza",
+limitations:"Infortuni o limitazioni fisiche",
+reviewIntro:"Controlla i dati prima di salvare.",
+choose:"Scegli",optional:"facoltativo",step:"Passaggio",of:"di",
+back:"INDIETRO",next:"CONTINUA →",save:"SALVA PROFILO →",
+requiredError:"Rispondi a tutte le domande obbligatorie.",
+measureError:"Controlla età, altezza e peso.",
+loginError:"Accedi prima di salvare.",
+saving:"Salvataggio profilo...",saveError:"Impossibile salvare:",
+checking:"Controllo account..."
+}
+};
+
+Object.assign(languageData, extraLanguages);
+
+const state = {};
+let step = 0;
+let user = null;
+let busy = false;
+
+const $ = id => document.getElementById(id);
+
+function currentLang() {
+  const lang = typeof getLanguage === "function"
+    ? getLanguage()
+    : localStorage.getItem("bodymode_language") || "en";
+
+  return languageData[lang] ? lang : "en";
+}
+
+function tx(key) {
+  return languageData[currentLang()][key] ||
+         languageData.en[key] ||
+         key;
+}
+
+function esc(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function field(key, label, required = true) {
+  return `
+    <div class="question">
+      <label for="q_${key}">${tx(label)}</label>
+      <input
+        id="q_${key}"
+        name="${key}"
+        type="number"
+        step="any"
+        value="${esc(state[key])}"
+        ${required ? "required" : ""}
+      >
+    </div>
+  `;
+}
+
+function choices(key, label, options) {
+  return `
+    <div class="question">
+      <label>${tx(label)}</label>
+      <div class="options">
+        ${options.map(([value, text]) => `
+          <button
+            type="button"
+            class="option ${state[key] === value ? "active" : ""}"
+            aria-pressed="${state[key] === value}"
+            data-key="${key}"
+            data-value="${value}"
+          >${tx(text)}</button>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function selectField(key, label, options) {
+  return `
+    <div class="question">
+      <label for="q_${key}">${tx(label)}</label>
+      <select id="q_${key}" name="${key}">
+        <option value="">${tx("choose")}</option>
+        ${options.map(([value, text]) => `
+          <option
+            value="${value}"
+            ${state[key] === value ? "selected" : ""}
+          >${typeof text === "function" ? text() : tx(text)}</option>
+        `).join("")}
+      </select>
+    </div>
+  `;
+}
+
+function textareaField(key, label) {
+  return `
+    <div class="question">
+      <label for="q_${key}">
+        ${tx(label)} (${tx("optional")})
+      </label>
+      <textarea id="q_${key}" name="${key}" rows="3">${esc(state[key])}</textarea>
+    </div>
+  `;
+}
+
+const numberOptions = (unit, numbers) =>
+  numbers.map(n => [
+    String(n),
+    () => `${n} ${tx(unit)}`
+  ]);
+
+const stages = [
+  {
+    title: "about",
+    required: ["age", "height", "weight"],
+    html: () =>
+      field("age", "age") +
+      field("height", "height") +
+      field("weight", "weight") +
+      choices("sex", "sex", [
+        ["male", "male"],
+        ["female", "female"],
+        ["prefer_not", "preferNot"]
+      ])
+  },
+  {
+    title: "goalStage",
+    required: ["goal", "timeline"],
+    html: () =>
+      choices("goal", "goal", [
+        ["muscle", "muscle"],
+        ["fat_loss", "fatLoss"],
+        ["strength", "strength"],
+        ["fitness", "fitness"],
+        ["maintain", "maintain"]
+      ]) +
+      (
+        ["muscle", "fat_loss", "maintain"].includes(state.goal)
+          ? field("targetWeight", "targetWeight", false)
+          : ""
+      ) +
+      selectField("timeline", "timeline", [
+        ["3months", "threeMonths"],
+        ["6months", "sixMonths"],
+        ["12months", "twelveMonths"],
+        ["flexible", "flexible"]
+      ])
+  },
+  {
+    title: "trainingStage",
+    required: ["location", "experience", "days", "duration"],
+    html: () =>
+      choices("location", "location", [
+        ["gym", "gym"],
+        ["home", "home"],
+        ["both", "both"]
+      ]) +
+      choices("experience", "experience", [
+        ["beginner", "beginner"],
+        ["intermediate", "intermediate"],
+        ["advanced", "advanced"]
+      ]) +
+      selectField("days", "days", numberOptions("daysUnit", [2,3,4,5,6])) +
+      selectField("duration", "duration", numberOptions("minutes", [20,30,45,60,90])) +
+      (
+        ["home", "both"].includes(state.location)
+          ? choices("equipment", "equipment", [
+              ["none", "none"],
+              ["dumbbells", "dumbbells"],
+              ["bands", "bands"],
+              ["full", "full"]
+            ])
+          : ""
+      )
+  },
+  {
+    title: "nutritionStage",
+    required: ["diet", "meals", "cooking"],
+    html: () =>
+      choices("diet", "diet", [
+        ["anything", "anything"],
+        ["vegetarian", "vegetarian"],
+        ["vegan", "vegan"],
+        ["halal", "halal"]
+      ]) +
+      selectField("meals", "meals", numberOptions("mealsUnit", [2,3,4,5])) +
+      choices("cooking", "cooking", [
+        ["quick", "quick"],
+        ["medium", "medium"],
+        ["long", "long"]
+      ]) +
+      textareaField("allergies", "allergies") +
+      textareaField("foodPreferences", "foodPreferences")
+  },
+  {
+    title: "lifestyleStage",
+    required: ["activity", "sleep", "obstacle"],
+    html: () =>
+      selectField("activity", "activity", [
+        ["sedentary", "sedentary"],
+        ["light", "light"],
+        ["active", "active"],
+        ["very_active", "veryActive"]
+      ]) +
+      selectField("sleep", "sleep", [
+        ["under6", "under6"],
+        ["6to7", "sixTo7"],
+        ["7to8", "sevenTo8"],
+        ["over8", "over8"]
+      ]) +
+      choices("obstacle", "obstacle", [
+        ["time", "time"],
+        ["nutrition", "nutritionObstacle"],
+        ["consistency", "consistency"],
+        ["knowledge", "knowledge"]
+      ]) +
+      textareaField("limitations", "limitations")
+  },
+  {
+    title: "reviewStage",
+    required: [],
+    html: () => `
+      <p class="muted">${tx("reviewIntro")}</p>
+      <div class="summary">
+        ${Object.entries(state)
+          .filter(([,value]) => value !== "")
+          .map(([key,value]) => `
+            <p>
+              <strong>${esc(fieldLabel(key))}:</strong>
+              ${esc(optionLabel(key,value))}
+            </p>
+          `).join("")}
+      </div>
+    `
+  }
+];
+
+const fieldKeys = {
+  age:"age",height:"height",weight:"weight",sex:"sex",
+  goal:"goal",targetWeight:"targetWeight",timeline:"timeline",
+  location:"location",experience:"experience",days:"days",
+  duration:"duration",equipment:"equipment",diet:"diet",
+  meals:"meals",cooking:"cooking",allergies:"allergies",
+  foodPreferences:"foodPreferences",activity:"activity",
+  sleep:"sleep",obstacle:"obstacle",limitations:"limitations"
+};
+
+const valueKeys = {
+  sex:{
+    male:"male",female:"female",prefer_not:"preferNot"
+  },
+  goal:{
+    muscle:"muscle",fat_loss:"fatLoss",strength:"strength",
+    fitness:"fitness",maintain:"maintain"
+  },
+  timeline:{
+    "3months":"threeMonths","6months":"sixMonths",
+    "12months":"twelveMonths",flexible:"flexible"
+  },
+  location:{
+    gym:"gym",home:"home",both:"both"
+  },
+  experience:{
+    beginner:"beginner",intermediate:"intermediate",advanced:"advanced"
+  },
+  equipment:{
+    none:"none",dumbbells:"dumbbells",bands:"bands",full:"full"
+  },
+  diet:{
+    anything:"anything",vegetarian:"vegetarian",vegan:"vegan",halal:"halal"
+  },
+  cooking:{
+    quick:"quick",medium:"medium",long:"long"
+  },
+  activity:{
+    sedentary:"sedentary",light:"light",
+    active:"active",very_active:"veryActive"
+  },
+  sleep:{
+    under6:"under6","6to7":"sixTo7",
+    "7to8":"sevenTo8",over8:"over8"
+  },
+  obstacle:{
+    time:"time",nutrition:"nutritionObstacle",
+    consistency:"consistency",knowledge:"knowledge"
+  }
+};
+
+function fieldLabel(key) {
+  return fieldKeys[key] ? tx(fieldKeys[key]) : key;
+}
+
+function optionLabel(key, value) {
+  const translationKey = valueKeys[key]?.[value];
+
+  if (translationKey) return tx(translationKey);
+  if (key === "days") return `${value} ${tx("daysUnit")}`;
+  if (key === "duration") return `${value} ${tx("minutes")}`;
+  if (key === "meals") return `${value} ${tx("mealsUnit")}`;
+
+  return value;
+}
+
+function collect() {
+  document.querySelectorAll(
+    "#questions input, #questions select, #questions textarea"
+  ).forEach(input => {
+    state[input.name] = input.value.trim();
+  });
+}
+
+function render() {
+  const current = stages[step];
+
+  $("questions").innerHTML =
+    `<h2>${tx(current.title)}</h2>` + current.html();
+
+  $("stepMeta").textContent =
+    `${tx("step")} ${step + 1} ${tx("of")} ${stages.length}`;
+
+  $("progressFill").style.width =
+    `${((step + 1) / stages.length) * 100}%`;
+
+  $("backBtn").disabled = busy || step === 0;
+  $("nextBtn").disabled = busy;
+
+  $("nextBtn").textContent =
+    step === stages.length - 1 ? tx("save") : tx("next");
+
+  $("backText").textContent = tx("back");
+  $("profileEyebrow").textContent = tx("eyebrow");
+  $("profileTitle").textContent = tx("title1");
+  $("profileTitleGold").textContent = tx("title2");
+  $("profileIntro").textContent = tx("intro");
+
+  document.querySelectorAll(".option").forEach(button => {
+    button.addEventListener("click", () => {
+      collect();
+      state[button.dataset.key] = button.dataset.value;
+      $("status").textContent = "";
+      render();
+    });
+  });
+}
+
+function validateStep() {
+  for (const key of stages[step].required) {
+    if (!state[key]) {
+      $("status").textContent = tx("requiredError");
+      return false;
+    }
+  }
+
+  if (step === 0) {
+    const age = Number(state.age);
+    const height = Number(state.height);
+    const weight = Number(state.weight);
+
+    if (
+      !Number.isFinite(age) ||
+      !Number.isFinite(height) ||
+      !Number.isFinite(weight) ||
+      age < 16 || age > 100 ||
+      height < 100 || height > 250 ||
+      weight < 25 || weight > 350
+    ) {
+      $("status").textContent = tx("measureError");
+      return false;
+    }
+  }
+
+  $("status").textContent = "";
+  return true;
+}
+
+$("backBtn").addEventListener("click", () => {
+  if (step > 0 && !busy) {
+    collect();
+    step--;
+    $("status").textContent = "";
+    render();
+  }
+});
+
+$("wizard").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (busy) return;
+
+  collect();
+
+  if (!validateStep()) return;
+
+  if (step < stages.length - 1) {
+    step++;
+    render();
+    return;
+  }
+
+  if (!user) {
+    $("status").textContent = tx("loginError");
+    return;
+  }
+
+  busy = true;
+  render();
+  $("status").textContent = tx("saving");
+
+  try {
+    const { error } = await supabaseClient
+      .from("fitness_profiles")
+      .upsert({
+        user_id: user.id,
+        answers: state,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: "user_id"
+      });
+
+    if (error) throw error;
+
+    window.location.href = "dashboard.html";
+
+  } catch (error) {
+    busy = false;
+    render();
+    $("status").textContent =
+      tx("saveError") + " " + error.message;
+  }
+});
+
+document.addEventListener("bodymode:languagechange", () => {
+  collect();
+  render();
+});
+
+async function initialize() {
+  $("status").textContent = tx("checking");
+
+  try {
+    if (typeof supabaseClient === "undefined") {
+      throw new Error("Supabase is not configured.");
+    }
+
+    const { data, error } =
+      await supabaseClient.auth.getUser();
+
+    if (error || !data.user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    user = data.user;
+
+    const result = await supabaseClient
+      .from("fitness_profiles")
+      .select("answers")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (result.error) throw result.error;
+
+    if (result.data?.answers) {
+      Object.assign(state, result.data.answers);
+    }
+
+    $("status").textContent = "";
+    render();
+
+  } catch (error) {
+    $("status").textContent = error.message;
+    console.error("Onboarding error:", error);
+  }
+}
+
+render();
+initialize();
+</script>
+
+</body>
+</html>
